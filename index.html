@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8"/>
+		<link rel="stylesheet" href="css/main.css">
+		<script src="js/papaparse.min.js"></script>
+		<script src="js/main.js"></script>
+	</head>
+	<body>
+
+		<div id="banner">Loading...</div>
+		<div id="main">
+			<div>
+				<!-- https://img.youtube.com/vi/TMNcMAqWG-I/0.jpg url of the thumbnail-->
+				<!-- 1. The <iframe> (and video player) will replace this <div> tag. -->
+				<div id="player" style="z-index: 0; position: absolute; margin-left: auto; margin-right: auto;"></div>
+				<script>
+					// 2. This code loads the IFrame Player API code asynchronously.
+					let tag = document.createElement('script');
+	
+					tag.src = "http://www.youtube.com/player_api";
+					let firstScriptTag = document.getElementsByTagName('script')[0];
+					firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+				</script>
+		
+				<div id="curtain">
+					<p id="counter"></p>
+				</div>
+			</div>
+		</div>
+
+		<button id="skipBtn" onclick="clickNext()">Next</button>
+		
+		<!-- <button style="z-index: 0;" onclick="player.playVideo();">Play</button> -->
+
+		<!-- <script src="https://cdn.rawgit.com/labnol/files/master/yt.js"></script> -->
+
+	</body>
+</html>

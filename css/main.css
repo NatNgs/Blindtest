@@ -1,0 +1,66 @@
+/* OVERALL */
+html, body {
+	min-height: 98%;
+	height: 98%;
+	min-width: 100%;
+	width: 100%;
+	overflow: hidden;
+}
+body {
+	background-color: black;
+	display: flex;
+	flex-direction: column;
+}
+
+/* HEADER */
+#banner {
+	overflow: hidden;
+	font-size: 3em;
+	height: 1.25em;
+	text-align: center;
+	color: wheat;
+}
+
+/* CENTER */
+#main {
+	flex-grow: 1;
+}
+#main > div {
+	position: relative;
+	width: 98%;
+	height: 98%;
+}
+#main > div > iframe {
+	top: 2.5%;
+	left: 2.5%;
+}
+
+#curtain {
+	z-index: 1;
+	position: absolute;
+	margin: auto;
+	left: 0;
+	top: 0;
+	height: 100%;
+	width: 100%;
+	backdrop-filter: blur(25px);
+	vertical-align: middle;
+}
+
+#curtain p {
+	color: white;
+	font-size: 100px;
+	text-align: center;
+	vertical-align: middle;
+}
+
+/* FOOTER */
+#skipBtn {
+	font-size: 3em;
+	width: 98%;
+	padding: 0;
+	margin: 0;
+	border: 0;
+	background-color: darkcyan;
+	cursor: pointer;
+}
