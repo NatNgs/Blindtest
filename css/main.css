@@ -56,11 +56,22 @@ body {
 
 /* FOOTER */
 #skipBtn {
-	font-size: 3em;
-	width: 98%;
+	font-size: 2em;
+	width: 68%;
+	height: 100%;
 	padding: 0;
 	margin: 0;
 	border: 0;
 	background-color: darkcyan;
+	cursor: pointer;
+}
+#playBtn {
+	font-size: 2em;
+	width: 29%;
+	height: 100%;
+	padding: 0;
+	margin: 0;
+	border: 0;
+	background-color: darkmagenta;
 	cursor: pointer;
 }

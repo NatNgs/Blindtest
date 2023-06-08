@@ -1,56 +1,5 @@
-function onLoad() {
-	curtain = document.getElementById('curtain')
-	counterElement = document.getElementById('counter')
-	banner = document.getElementById('banner')
 
-	Papa.parse("video-list.csv", {
-		download: false, // False for local, TRUE for online ##########################################
-		header: true,
-		//worker: true, // for large csv
-		complete: function(res) {
-			console.log('database loaded:', res);
-			// ################################################# Local mock v
-			// videoList = res.data
-			videoList = [
-				{id:'QHpU0ZfXZ_g', start:0, end:180, name:'Nathaël'},
-				{id:'d020hcWA_Wg', start:0, end:255, name:'Nathaël'},
-				{id:'M7X6oYg6iro', start:0, end:233, name:'Nathaël'},
-				{id:'l482T0yNkeo', start:0, end:207., name:'Nathaël'},
-				{id:'_ovdm2yX4MA', start:0, end:198, name:'Nathaël'},
-				{id:'3b8btcCmL0c', start:0, end:60, name:'Nathaël'},
-				{id:'2vjPBrBU-TM', start:0, end:231., name:'Nathaël'},
-				{id:'hT_nvWreIhg', start:0, end:257, name:'Nathaël'},
-				{id:'BXhIT4MpRis', start:0, end:230., name:'Nathaël'},
-				{id:'jAxOyFE59c4', start:0, end:260, name:'Nathaël'},
-				{id:'2EIeUlvHAiM', start:0, end:230., name:'Nathaël'},
-				{id:'wHylQRVN2Qs', start:0, end:230., name:'Nathaël'},
-				{id:'Bag1gUxuU0g', start:0, end:285, name:'Nathaël'},
-				{id:'tXZXLmzyKkw', start:0, end:385, name:'Nathaël'},
-				{id:'TPE9uSFFxrI', start:30, end:310, name:'Nathaël'},
-				{id:'8AHCfZTRGiI', start:0, end:215, name:'Nathaël'},
-				{id:'_YqzuE-5RE8', start:3, end:157, name:'Nathaël'},
-				{id:'MbXWrmQW-OE', start:0, end:260, name:'Nathaël'},
-				{id:'fKopy74weus', start:22, end:200., name:'Nathaël'},
-				{id:'8DyziWtkfBw', start:0, end:270., name:'Nathaël'},
-				{id:'IJiHDmyhE1A', start:15, end:214., name:'Nathaël'},
-				{id:'b-3BI9AspYc', start:0, end:242, name:'Nathaël'},
-				{id:'9KyolyVcWu8', start:3, end:258, name:'Nathaël'},
-				{id:'h_MzYQTLXbk', start:8, end:322, name:'Nathaël'},
-			]
-			// ################################################## Local Mock ^
-			videoList.shuffle()
-			console.log(videoList)
-
-			banner.innerHTML = 'Click on "Next" to start !'
-			counterElement.innerHTML = '⇊'
-		}
-	});
-
-}
-
-
-// 3. This function creates an <iframe> (and YouTube player)
-//    after the API code downloads.
+// Prepare Youtube Player
 let player;
 function onYouTubeIframeAPIReady() {
 	player = new YT.Player('player', {
@@ -60,10 +9,38 @@ function onYouTubeIframeAPIReady() {
 		events: {
 			'onReady': onPlayerReady,
 			'onStateChange': onPlayerStateChange
-		}
+		},
+		disablekb: 1,
+		controls: 0,
+		iv_load_policy: 3,
 	});
+	
+	curtain = document.getElementById('curtain')
+	counterElement = document.getElementById('counter')
+	banner = document.getElementById('banner')
+	
 	onLoad()
 }
+
+// Prepare playlist
+function onLoad() {
+	try {
+		let txt_video_list = prompt("Paste the JSON video list below");
+		console.log(txt_video_list)
+		videoList = JSON.parse(txt_video_list)
+		videoList.shuffle()
+		console.log(videoList)
+
+		banner.innerHTML = 'Click on "Next" to start !'
+		counterElement.innerHTML = '⇊'
+	} catch(e) {
+		banner.innerHTML = 'Load Failed. [F5] to retry.'
+		counterElement.innerHTML = e
+		console.log(e)
+	}
+}
+
+
 
 // 4. The API will call this function when the video player is ready.
 function onPlayerReady(event) {
@@ -124,7 +101,7 @@ let banner = null
 
 function liftCurtain() {
 	let vdata = player.getVideoData()
-	let soluce = '(' + vdata['author'] + ') ' + vdata['title']
+	let soluce = vdata['title']
 	console.log('lift curtain', soluce)
 	curtain.style.opacity = '0'
 	banner.innerHTML = soluce
@@ -180,4 +157,8 @@ function playNextVideo() {
 function clickNext() {
 	player.stopVideo()
 	setTimeout(playNextVideo, 100)
+}
+
+function clickPlayPause() {
+	player.pauseVideo()
 }
