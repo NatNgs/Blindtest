@@ -43,7 +43,7 @@ body {
 	top: 0;
 	height: 100%;
 	width: 100%;
-	backdrop-filter: blur(25px);
+	backdrop-filter: blur(50px);
 	vertical-align: middle;
 }
 
@@ -52,6 +52,7 @@ body {
 	font-size: 100px;
 	text-align: center;
 	vertical-align: middle;
+	text-shadow: 0 0 0.1em black;
 }
 
 /* FOOTER */

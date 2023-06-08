@@ -7,7 +7,6 @@ function onYouTubeIframeAPIReady() {
 		width: '95%',
 		videoId: '',
 		events: {
-			'onReady': onPlayerReady,
 			'onStateChange': onPlayerStateChange
 		},
 		disablekb: 1,
@@ -40,14 +39,6 @@ function onLoad() {
 	}
 }
 
-
-
-// 4. The API will call this function when the video player is ready.
-function onPlayerReady(event) {
-	console.log('onready triggered')
-	player.playVideo();
-}
-
 // 5. The API calls this function when the player's state changes.
 //    The function indicates that when playing a video (state=1),
 //    the player should play for six seconds and then stop.
@@ -55,29 +46,28 @@ let gameStarted = false
 let timerStarted = false
 let cued = false
 function onPlayerStateChange(event) {
-	console.log('triggered on player change', event.data)
 	if (!gameStarted) {
 		return
 	}
 	if (event.data == YT.PlayerState.CUED && !cued) {
-		console.log('video is cued, we can start playing')
+		console.log('video is cued, we can start playing => cued = true')
 		
 		cued = true
 		banner.innerHTML = '(' + videoList[ivideo]['name'] + ')'
 		counterElement.innerHTML = '<br>' + guessingTime
 		player.playVideo()
+		playing = true
 	} else if (event.data == YT.PlayerState.PLAYING && !timerStarted) {
-		console.log('starting the timers')
-		counter = guessingTime
 		countInter = setInterval(updateCounter, 1000)
-		guessTimeout = setTimeout(liftCurtain, guessingTime*1000) // change here for guessing time
-	} else if (event.data == YT.PlayerState.ENDED && cued) {
+	} else if (event.data == YT.PlayerState.ENDED) {
 		console.log('video is ended, let us play next video')
+		playing = false
 		clickNext()
 	} else {
-		console.log('UNKNOWN EVENT', event.data)
+		console.log('Event ignored', event.data, Object.keys(YT.PlayerState).find(key => YT.PlayerState[key] === event.data))
 	}
 }
+
 
 let videoList = []
 Array.prototype.shuffle = function() {
@@ -90,38 +80,37 @@ Array.prototype.shuffle = function() {
 }
 
 let ivideo = -1
-let counter = 0
 let curtain = null
 let counterElement = null
 let countInter = null
-let guessingTime = 30 // seconds
-let guessTimeout = null
+const guessingTime = 30 // seconds
 let cuingTimeout = null
 let banner = null
+let playing = false
 
-function liftCurtain() {
-	let vdata = player.getVideoData()
-	let soluce = vdata['title']
-	console.log('lift curtain', soluce)
-	curtain.style.opacity = '0'
-	banner.innerHTML = soluce
-}
 
 function updateCounter() {
-	counter --
-	counterElement.innerHTML = '<br>' + counter
+	revealTime = videoList[ivideo]['start'] + guessingTime
+	currentTime = player.getCurrentTime()
+	if(revealTime <= currentTime) {
+		let vdata = player.getVideoData()
+		let soluce = vdata['title']
+		curtain.style.display = 'none'
+		banner.innerHTML = soluce
+	} else {
+		let counter = (revealTime - currentTime + 0.5)|0
+		counterElement.innerHTML = '<br>' + counter
+	}
 }
 
 function playNextVideo() {
+	console.log("Play Next Video => cued = false")
 	// reset flags
 	cued = false
-
-	clearTimeout(guessTimeout)
 	clearInterval(countInter)
 	clearTimeout(cuingTimeout)
 	timerStarted = false
 	gameStarted = true
-	guessingTime = 30
 
 	// increase video index
 	ivideo += 1
@@ -144,7 +133,7 @@ function playNextVideo() {
 	)
 	
 	// reset counter end drop the curtain
-	curtain.style.opacity = '1'
+	curtain.style.display = 'block'
 	banner.innerHTML = '(loading song '+ (ivideo+1) + '/' + videoList.length +'...)'
 	counterElement.innerHTML = ''
 
@@ -156,9 +145,19 @@ function playNextVideo() {
 }
 function clickNext() {
 	player.stopVideo()
+	playing = false
 	setTimeout(playNextVideo, 100)
 }
 
 function clickPlayPause() {
-	player.pauseVideo()
+	console.log("Click play/pauyse", cued, playing)
+	if(cued) {
+		if(playing) {
+			player.pauseVideo()
+			playing = false
+		} else {
+			player.playVideo()
+			playing = true
+		}
+	}
 }
