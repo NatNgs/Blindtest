@@ -39,32 +39,25 @@ function onLoad() {
 	}
 }
 
-// 5. The API calls this function when the player's state changes.
-//    The function indicates that when playing a video (state=1),
-//    the player should play for six seconds and then stop.
+// When video player sends an event (video started, stopped, loaded, ...)
 let gameStarted = false
 let timerStarted = false
 let cued = false
 function onPlayerStateChange(event) {
+	// console.log('Event received:', Object.keys(YT.PlayerState).find(key => YT.PlayerState[key] === event.data) || event.data)
 	if (!gameStarted) {
 		return
 	}
 	if (event.data == YT.PlayerState.CUED && !cued) {
-		console.log('video is cued, we can start playing => cued = true')
-		
 		cued = true
 		banner.innerHTML = '(' + videoList[ivideo]['name'] + ')'
 		counterElement.innerHTML = '<br>' + guessingTime
-		player.playVideo()
-		playing = true
+		setTimeout(playVideo, 100)
 	} else if (event.data == YT.PlayerState.PLAYING && !timerStarted) {
-		countInter = setInterval(updateCounter, 1000)
+		countInter = setInterval(updateCounter, 250)
 	} else if (event.data == YT.PlayerState.ENDED) {
-		console.log('video is ended, let us play next video')
 		playing = false
 		clickNext()
-	} else {
-		console.log('Event ignored', event.data, Object.keys(YT.PlayerState).find(key => YT.PlayerState[key] === event.data))
 	}
 }
 
@@ -88,7 +81,7 @@ let cuingTimeout = null
 let banner = null
 let playing = false
 
-
+// Display the counter to 0
 function updateCounter() {
 	revealTime = videoList[ivideo]['start'] + guessingTime
 	currentTime = player.getCurrentTime()
@@ -97,14 +90,23 @@ function updateCounter() {
 		let soluce = vdata['title']
 		curtain.style.display = 'none'
 		banner.innerHTML = soluce
+		curtain.style['backdrop-filter'] = ''
 	} else {
-		let counter = (revealTime - currentTime + 0.5)|0
-		counterElement.innerHTML = '<br>' + counter
+		let counter = revealTime - currentTime
+		counterElement.innerHTML = '<br>' + ((counter+0.99)|0)
+
+		if (counter < 3) {
+			curtain.style['backdrop-filter'] = 'blur(0) grayscale(0)'
+		} else if (counter < 8) {
+			curtain.style['backdrop-filter'] = 'blur(' + ((counter-3) * 10) + 'px) grayscale(' + ((counter-3)*20) + '%)'
+		} else {
+			curtain.style['backdrop-filter'] = ''
+		}
 	}
 }
 
+// Prepare the next video to play
 function playNextVideo() {
-	console.log("Play Next Video => cued = false")
 	// reset flags
 	cued = false
 	clearInterval(countInter)
@@ -150,14 +152,17 @@ function clickNext() {
 }
 
 function clickPlayPause() {
-	console.log("Click play/pauyse", cued, playing)
 	if(cued) {
 		if(playing) {
 			player.pauseVideo()
 			playing = false
 		} else {
-			player.playVideo()
-			playing = true
+			playVideo()
 		}
 	}
+}
+
+function playVideo() {
+	player.playVideo()
+	playing = true
 }
