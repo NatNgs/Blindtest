@@ -1,3 +1,17 @@
+Array.prototype.shuffle = function() {
+	for(let i = this.length-1; i > 0; i--) {
+		let rnd = (Math.random() * this.length)|0
+		if(rnd == i) continue
+		let tmp = this[rnd]
+		this[rnd] = this[i]
+		this[i] = tmp
+	}
+}
+
+
+// Constants
+const guessingTime = 30 // seconds
+
 
 // Prepare Youtube Player
 let player;
@@ -13,11 +27,11 @@ function onYouTubeIframeAPIReady() {
 		controls: 0,
 		iv_load_policy: 3,
 	});
-	
+
 	curtain = document.getElementById('curtain')
 	counterElement = document.getElementById('counter')
 	banner = document.getElementById('banner')
-	
+
 	onLoad()
 }
 
@@ -61,22 +75,12 @@ function onPlayerStateChange(event) {
 	}
 }
 
-
+// Local variables
 let videoList = []
-Array.prototype.shuffle = function() {
-	for(let i = 0; i < this.length; i++) {
-		let rnd = (Math.random() * this.length)|0
-		let tmp = this[rnd]
-		this[rnd] = this[i]
-		this[i] = tmp
-	}
-}
-
 let ivideo = -1
 let curtain = null
 let counterElement = null
 let countInter = null
-const guessingTime = 30 // seconds
 let cuingTimeout = null
 let banner = null
 let playing = false
@@ -91,17 +95,18 @@ function updateCounter() {
 		curtain.style.display = 'none'
 		banner.innerHTML = soluce
 		curtain.style['backdrop-filter'] = ''
-	} else {
-		let counter = revealTime - currentTime
-		counterElement.innerHTML = '<br>' + ((counter+0.99)|0)
+		return
+	}
 
-		if (counter < 3) {
-			curtain.style['backdrop-filter'] = 'blur(0) grayscale(0)'
-		} else if (counter < 8) {
-			curtain.style['backdrop-filter'] = 'blur(' + ((counter-3) * 10) + 'px) grayscale(' + ((counter-3)*20) + '%)'
-		} else {
-			curtain.style['backdrop-filter'] = ''
-		}
+	let counter = revealTime - currentTime
+	counterElement.innerHTML = '<br>' + ((counter+0.99)|0)
+
+	if (counter < 3) {
+		curtain.style['backdrop-filter'] = 'blur(0) grayscale(0)'
+	} else if (counter < 8) {
+		curtain.style['backdrop-filter'] = 'blur(' + ((counter-3) * 10) + 'px) grayscale(' + ((counter-3)*20) + '%)'
+	} else {
+		curtain.style['backdrop-filter'] = ''
 	}
 }
 
@@ -115,11 +120,15 @@ function playNextVideo() {
 	gameStarted = true
 
 	// increase video index
-	ivideo += 1
+	if(ivideo < 0) {
+		videoList.shuffle()
+		ivideo = 0
+	} else {
+		ivideo ++
+	}
 
 	// if no more video, stop player and return
 	if (ivideo >= videoList.length) {
-		console.log('no more video to play')
 		curtain.style.display = 'block'
 		counterElement.innerHTML = 'End of the list !'
 		clearInterval(countInter)
@@ -133,7 +142,7 @@ function playNextVideo() {
 		'startSeconds': videoList[ivideo]['start'],
 		'endSeconds': videoList[ivideo]['end']}
 	)
-	
+
 	// reset counter end drop the curtain
 	curtain.style.display = 'block'
 	banner.innerHTML = '(loading song '+ (ivideo+1) + '/' + videoList.length +'...)'
