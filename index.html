@@ -3,10 +3,26 @@
 	<head>
 		<meta charset="utf-8"/>
 		<link rel="stylesheet" href="css/main.css">
-		<script src="js/papaparse.min.js"></script>
+		<link rel="stylesheet" href="css/toasts.css" defer>
 		<script src="js/main.js"></script>
+		<script src="js/toasts.js" defer></script>
+		<script src="https://www.youtube.com/player_api" defer></script>
 	</head>
 	<body>
+		<div id="menu">
+			<h1>Welcome to the BlindTest</h1>
+			<div>Currently listed videos: <span id="vid_count">0</span> (remaining to be loaded: <span id="load_count">0</span>)</div>
+
+			<br/>
+			<div>Some videos may be unavailable due to Country restrictions or Youtube policies (some video are not allowed to be played outside youtube.com). They will be removed while loading.</div>
+			<br/>
+			<button onclick="loadFromFile()">Load more from File</button><br/>
+			<button onclick="loadFromInput()">Load more from Json</button><br/>
+			<button onclick="resetList()">Reset list</button><br/>
+			<br/>
+			<button onclick="onStart()">Start</button>
+		</div>
+
 		<!-- Header div, showing song name -->
 		<div id="banner">Loading...</div>
 
@@ -15,13 +31,6 @@
 			<div>
 				<!-- Youtube video player -->
 				<div id="player" style="z-index: 0; position: absolute; margin-left: auto; margin-right: auto;"></div>
-				<script>
-					let tag = document.createElement('script');
-
-					tag.src = 'https://www.youtube.com/player_api';
-					let firstScriptTag = document.getElementsByTagName('script')[0];
-					firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-				</script>
 
 				<!-- Curatain to hide playing video -->
 				<div id="curtain">

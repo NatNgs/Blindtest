@@ -16,7 +16,8 @@ If you need to change the list, or the list failed to load: refresh the page (F5
 		"id":"ucZl6vQ_8Uo",
 		"start":0,
 		"end":63,
-		"name":"TEST 1"
+		"name":"A clue",
+		"title":"The answer"
 	},{
 		"id":"mVg_l2Fbw6U",
 		"start":5,
@@ -30,3 +31,17 @@ If you need to change the list, or the list failed to load: refresh the page (F5
 - start: Where to start the video (in seconds since the video beginning)
 - end: Where to automatically skip to the next music (in seconds since the video beginning)
 - name: Information shown when the song is being played hidden (will be replaced by the Youtube video title after 30s)
+- title: Title to be shown after the blind duration (if not set, will display the video title)
+
+## Features 
+
+- Pre load videos to check if they are ok to be watched
+
+## TODO
+
+- Improve menu style
+- Fix 30s display failing
+- Depreciate load by JSON
+- refactor so that not everything is in the main.js
+- New list format
+- Use async/await instead of timeouts
