@@ -107,6 +107,7 @@ async function loadVideos(vidsToAdd) {
 	let successCount = 0
 	const errorsMap = {}
 	while(loadingVideos.length) {
+		console.debug('[LOAD] next')
 		document.getElementById('load_count').innerHTML = loadingVideos.length
 
 		// Pick a random element from loadingVideo
@@ -124,6 +125,7 @@ async function loadVideos(vidsToAdd) {
 		// Open-it in the youtube player
 		loaderPlayer.errCode = null
 		loaderPlayer.errMessage = null
+		console.debug('[LOAD] Cuing')
 		loaderPlayer.cueVideoById({videoId:vid_id, startSeconds:0, endSeconds:.34})
 
 		// Wait until video has been loaded
@@ -133,18 +135,21 @@ async function loadVideos(vidsToAdd) {
 			loaderPlayer.errMessage = 'Loading timeout'
 		}
 		if(loaderPlayer.errCode) {
+			console.debug('[LOAD] Error', loaderPlayer.errCode, loaderPlayer.errMessage)
 			errorsMap[loaderPlayer.errMessage] = (errorsMap[loaderPlayer.errMessage] || 0) +1
 			continue
 		}
 
 		// Load more info from the video by playing first seconds of it
+		console.debug('[LOAD] Playing')
 		loaderPlayer.playVideo()
-		await waitUntilTrue(() => loaderPlayer.getDuration() > 0)
+		await waitUntilTrue(() => loaderPlayer.getDuration() > 0.1)
 
 		// Process has been stopped while waiting
 		if(!isLoadingVideos) break
 
 		// Extract video data, and if isPlayable is true, add its info to videoList (and increment loaded video counter)
+		console.debug('[LOAD] Get video data')
 		const vdata = loaderPlayer.getVideoData()
 		if(vdata && vdata.isPlayable && !vdata.errorCode) {
 			const duration = loaderPlayer.getDuration()
@@ -156,10 +161,12 @@ async function loadVideos(vidsToAdd) {
 			if(duration && !currentlyLoading.end || currentlyLoading.end > duration) currentlyLoading.end = duration
 			if(!currentlyLoading.start) currentlyLoading.start = loaderPlayer.getCurrentTime() || 0
 
+			console.debug('[LOAD] Inserting')
 			videoList.push(currentlyLoading)
 			document.getElementById('vid_count').innerHTML = `${videoList.length}`
 			successCount ++
 		}
+		console.debug('[LOAD] Stopping video')
 		loaderPlayer.stopVideo()
 	}
 
