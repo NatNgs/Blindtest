@@ -52,6 +52,7 @@ function onYouTubeIframeAPIReady() {
 		disablekb: 1,
 		controls: 0,
 		iv_load_policy: 3,
+		rel: 0,
 	});
 
 	curtain = document.getElementById('curtain')
@@ -71,74 +72,7 @@ function parseTime(timeAsText) {
 	return undefined
 }
 
-// Prepare playlist
-function saveToFile() {
-	// Ask to save text file .tsv
-	const tsv = ['## Video ##\tAnswer\tClue\tBegins\tEnds']
-	for(const v of videoList) {
-		tsv.push([v.id, v.title || '', v.name || '', v.start, v.end].join('\t').trimEnd())
-	}
 
-	const blob = new Blob([tsv.join('\n')], {type: "text/plain;charset=utf-8"})
-	const url = URL.createObjectURL(blob)
-	const a = document.createElement("a")
-	a.href = url
-	a.download = "Nindtest list.tsv"
-	a.click()
-	URL.revokeObjectURL(url)
-}
-function loadFromFile() {
-	// Load from TSV file
-	const input = document.createElement('input')
-	input.type = 'file'
-	input.accept = '.tsv'
-	input.onchange = () => {
-		const file = input.files[0]
-		const reader = new FileReader()
-		reader.onload = () => {
-			const rows = reader.result.split('\n')
-			const newVideoList = []
-			for(const r of rows) {
-				const cols = r.trim().split('\t')
-
-				if(cols[0].length > 11) {
-					// Parse yt video URL to video id
-					let match = url.match(/(?:[^/]+\/)*([a-zA-Z0-9_-]{11})/)
-					if(match && match.length > 1)
-						cols[0] = match[1]
-					else {
-						// Extract url params, and find parameter "v"
-						match = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/)
-						if(match && match.length > 1)
-							cols[0] = match[1]
-					}
-				}
-				if(cols[0].length !== 11 || cols[0][0] === '#') continue
-
-				const dta = {id: cols[0]}
-				if(cols.length >= 2) dta['title'] = cols[1]
-				if(cols.length >= 3) dta['name'] = cols[2]
-				if(cols.length >= 4) dta['start'] = parseTime(cols[3])
-				if(cols.length >= 5) dta['end'] = parseTime(cols[4])
-				newVideoList.push(dta)
-			}
-			loadVideos(newVideoList)
-		}
-		reader.readAsText(file)
-	}
-	input.click()
-}
-function loadFromJson() {
-	// Load from JSON text
-	let txt_video_list = prompt("Paste the JSON video list below");
-	try {
-		const newVideoList = JSON.parse(txt_video_list)
-		loadVideos(newVideoList)
-	} catch(e) {
-		alert('Failed to load. Format may be incorrect.')
-		console.log(e, txt_video_list)
-	}
-}
 function resetList() {
 	loadingVideos.length = 0
 	videoList.length = 0
@@ -203,7 +137,7 @@ async function loadVideos(vidsToAdd) {
 			if(!currentlyLoading.title) currentlyLoading.title = vdata.title
 
 			if(duration && !currentlyLoading.end || currentlyLoading.end > duration) currentlyLoading.end = duration
-			if(!currentlyLoading.start) currentlyLoading.start = 0
+			if(!currentlyLoading.start) currentlyLoading.start = videoPlayer.currentTime() || 0
 
 			videoList.push(currentlyLoading)
 			document.getElementById('vid_count').innerHTML = `${videoList.length}`
@@ -347,10 +281,19 @@ function playNextVideo() {
 
 	// cue a new video (it will be played once cued)
 	console.log('cued video:', ivideo, videoList[ivideo])
+
+	let _start = videoList[ivideo]['start']
+	let _end = videoList[ivideo]['end']
+	if(_end - _start > 2*guessingTime) {
+		// Randomize where to start between _start and (_end - 2*guessintTime), then set _end = (_start + 2*guessingTime)
+		_start = Math.random() * (_end - 2*guessingTime) + _start
+		_end = _start + 2*guessingTime
+	}
+
 	videoPlayer.cueVideoById({'videoId': videoList[ivideo]['id'],
-		'startSeconds': videoList[ivideo]['start'],
-		'endSeconds': videoList[ivideo]['end']}
-	)
+		'startSeconds': _start,
+		'endSeconds': _end,
+	})
 
 	// reset counter end drop the curtain
 	curtain.style.display = 'block'
