@@ -47,6 +47,14 @@ body {
 	left: 2.5%;
 }
 
+#loadStats {
+	position: fixed;
+	bottom: 1em;
+	left: 1em;
+	color: white;
+	z-index: 101;
+}
+
 #curtain {
 	z-index: 1;
 	position: absolute;
