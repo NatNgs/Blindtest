@@ -115,8 +115,8 @@ async function loadVideos(vidsToAdd) {
 		const currentlyLoading = loadingVideos[index]
 
 		// Remove the video from the list
-		if(index < loadingVideos.length) loadingVideos[index] = loadingVideos.pop()
-		else loadingVideos.pop()
+		if(index == loadingVideos.length-1) loadingVideos.pop()
+		else loadingVideos[index] = loadingVideos.pop()
 
 		// if video is already loaded: skip
 		const vid_id = currentlyLoading['id']
