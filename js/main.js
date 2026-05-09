@@ -102,7 +102,6 @@ async function loadVideos(vidsToAdd) {
 
 	isLoadingVideos = true
 
-	await waitUntilTrue(()=>loaderPlayer.mute)
 	loaderPlayer.mute()
 
 	let successCount = 0
@@ -115,13 +114,12 @@ async function loadVideos(vidsToAdd) {
 		const currentlyLoading = loadingVideos[index]
 
 		// Remove the video from the list
-		if(index == loadingVideos.length-1) loadingVideos.pop()
-		else loadingVideos[index] = loadingVideos.pop()
+		loadingVideos[index] = loadingVideos[loadingVideos.length-1]
+		loadingVideos.pop()
 
 		// if video is already loaded: skip
 		const vid_id = currentlyLoading['id']
 		if(videoList.find(v => v.id == vid_id)) continue
-
 
 		// Open-it in the youtube player
 		loaderPlayer.errCode = null
@@ -142,7 +140,6 @@ async function loadVideos(vidsToAdd) {
 		// Load more info from the video by playing first seconds of it
 		loaderPlayer.loadVideoById({videoId:vid_id, startSeconds:0, endSeconds:.34})
 		await waitUntilTrue(() => loaderPlayer.getDuration() > 0)
-		loaderPlayer.stopVideo()
 
 		// Process has been stopped while waiting
 		if(!isLoadingVideos) break
@@ -163,7 +160,6 @@ async function loadVideos(vidsToAdd) {
 			document.getElementById('vid_count').innerHTML = `${videoList.length}`
 		}
 		successCount ++
-		await sleep(300)
 	}
 
 	document.getElementById('load_count').innerHTML = loadingVideos.length
