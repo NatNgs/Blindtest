@@ -109,57 +109,63 @@ async function loadVideos(vidsToAdd) {
 	while(loadingVideos.length) {
 		document.getElementById('load_count').innerHTML = loadingVideos.length
 
-		// Pick a random element from loadingVideo
-		const index = (loadingVideos.length * Math.random())|0
-		const currentlyLoading = loadingVideos[index]
+		try {
 
-		// Remove the video from the list
-		loadingVideos[index] = loadingVideos[loadingVideos.length-1]
-		loadingVideos.pop()
+			// Pick a random element from loadingVideo
+			const index = (loadingVideos.length * Math.random())|0
+			const currentlyLoading = loadingVideos[index]
 
-		// if video is already loaded: skip
-		const vid_id = currentlyLoading['id']
-		if(videoList.find(v => v.id == vid_id)) continue
+			// Remove the video from the list
+			loadingVideos[index] = loadingVideos[loadingVideos.length-1]
+			loadingVideos.pop()
 
-		// Open-it in the youtube player
-		loaderPlayer.errCode = null
-		loaderPlayer.errMessage = null
-		loaderPlayer.cueVideoById(vid_id)
+			// if video is already loaded: skip
+			const vid_id = currentlyLoading['id']
+			if(videoList.find(v => v.id == vid_id)) continue
 
-		// Wait until video has been loaded
-		const hasBeenLoaded = await waitUntilTrue(() => loaderPlayer.errCode || loaderPlayer?.playerInfo?.videoData?.video_id === vid_id, 2000)
-		if(!hasBeenLoaded) {
-			loaderPlayer.errCode = -1
-			loaderPlayer.errMessage = 'Loading timeout'
+			// Open-it in the youtube player
+			loaderPlayer.errCode = null
+			loaderPlayer.errMessage = null
+			loaderPlayer.cueVideoById({videoId:vid_id, startSeconds:0, endSeconds:.34})
+
+			// Wait until video has been loaded
+			const hasBeenLoaded = await waitUntilTrue(() => loaderPlayer.errCode || loaderPlayer?.playerInfo?.videoData?.video_id === vid_id, 2000)
+			if(!hasBeenLoaded) {
+				loaderPlayer.errCode = -1
+				loaderPlayer.errMessage = 'Loading timeout'
+			}
+			if(loaderPlayer.errCode) {
+				errorsMap[loaderPlayer.errMessage] = (errorsMap[loaderPlayer.errMessage] || 0) +1
+				continue
+			}
+
+			// Load more info from the video by playing first seconds of it
+			loaderPlayer.playVideo()
+			await waitUntilTrue(() => loaderPlayer.getDuration() > 0)
+			loaderPlayer.stopVideo()
+
+			// Process has been stopped while waiting
+			if(!isLoadingVideos) break
+
+			// Extract video data, and if isPlayable is true, add its info to videoList (and increment loaded video counter)
+			const vdata = loaderPlayer.getVideoData()
+			if(vdata && vdata.isPlayable && !vdata.errorCode) {
+				const duration = loaderPlayer.getDuration()
+
+				// Fill missing data
+				if(!currentlyLoading.author) currentlyLoading.author = vdata.author
+				if(!currentlyLoading.title) currentlyLoading.title = vdata.title
+
+				if(duration && !currentlyLoading.end || currentlyLoading.end > duration) currentlyLoading.end = duration
+				if(!currentlyLoading.start) currentlyLoading.start = loaderPlayer.getCurrentTime() || 0
+
+				videoList.push(currentlyLoading)
+				document.getElementById('vid_count').innerHTML = `${videoList.length}`
+			}
+			successCount ++
+		} catch(e) {
+			console.error(e)
 		}
-		if(loaderPlayer.errCode) {
-			errorsMap[loaderPlayer.errMessage] = (errorsMap[loaderPlayer.errMessage] || 0) +1
-			continue
-		}
-
-		// Load more info from the video by playing first seconds of it
-		loaderPlayer.loadVideoById({videoId:vid_id, startSeconds:0, endSeconds:.34})
-		await waitUntilTrue(() => loaderPlayer.getDuration() > 0)
-
-		// Process has been stopped while waiting
-		if(!isLoadingVideos) break
-
-		// Extract video data, and if isPlayable is true, add its info to videoList (and increment loaded video counter)
-		const vdata = loaderPlayer.getVideoData()
-		if(vdata && vdata.isPlayable && !vdata.errorCode) {
-			const duration = loaderPlayer.getDuration()
-
-			// Fill missing data
-			if(!currentlyLoading.author) currentlyLoading.author = vdata.author
-			if(!currentlyLoading.title) currentlyLoading.title = vdata.title
-
-			if(duration && !currentlyLoading.end || currentlyLoading.end > duration) currentlyLoading.end = duration
-			if(!currentlyLoading.start) currentlyLoading.start = loaderPlayer.getCurrentTime() || 0
-
-			videoList.push(currentlyLoading)
-			document.getElementById('vid_count').innerHTML = `${videoList.length}`
-		}
-		successCount ++
 	}
 
 	document.getElementById('load_count').innerHTML = loadingVideos.length
