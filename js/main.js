@@ -162,6 +162,7 @@ async function loadVideos(vidsToAdd) {
 			document.getElementById('vid_count').innerHTML = `${videoList.length}`
 		}
 		successCount ++
+		await sleep(300)
 	}
 
 	document.getElementById('load_count').innerHTML = loadingVideos.length
@@ -257,6 +258,7 @@ function updateCounter() {
 	skipTime = revealTime + afterguessingTime
 	if(currentTime >= skipTime) {
 		// Fallback if youtube stop time doesnt works (unfortunately often happens)
+		clearInterval(countInter)
 		setTimeout(playNextVideo, 100)
 		return
 	}
