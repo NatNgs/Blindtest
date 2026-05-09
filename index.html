@@ -10,15 +10,16 @@
 	</head>
 	<body>
 		<div id="menu">
-			<h1>Welcome to the BlindTest</h1>
+			<h1>Welcome to NindTest</h1>
 			<div>Currently listed videos: <span id="vid_count">0</span> (remaining to be loaded: <span id="load_count">0</span>)</div>
 
 			<br/>
 			<div>Some videos may be unavailable due to Country restrictions or Youtube policies (some video are not allowed to be played outside youtube.com). They will be removed while loading.</div>
 			<br/>
 			<button onclick="loadFromFile()">Load more from File</button><br/>
-			<button onclick="loadFromInput()">Load more from Json</button><br/>
+			<button onclick="loadFromJson()">Load more from Json</button><br/>
 			<button onclick="resetList()">Reset list</button><br/>
+			<button onclick="saveToFile()">Export loaded list</button><br/>
 			<br/>
 			<button onclick="onStart()">Start</button>
 		</div>

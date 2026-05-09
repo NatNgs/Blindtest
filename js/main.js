@@ -59,7 +59,34 @@ function onYouTubeIframeAPIReady() {
 	banner = document.getElementById('banner')
 }
 
+function parseTime(timeAsText) {
+	try {
+		const spt = timeAsText.split(':')
+		if(spt.length === 1) return Number.parseFloat(timeAsText)
+		if(spt.length === 2) return Number.parseInt(spt[0])*60 + Number.parseFloat(spt[1])
+		if(spt.length === 3) return (Number.parseInt(spt[0])*60 + Number.parseInt(spt[1]))*60 + Number.parseFloat(spt[2])
+	} catch(e) {
+		console.warn('Could not parse time: \'' + timeAsText + '\'', e)
+	}
+	return undefined
+}
+
 // Prepare playlist
+function saveToFile() {
+	// Ask to save text file .tsv
+	const tsv = ['## Video ##\tAnswer\tClue\tBegins\tEnds']
+	for(const v of videoList) {
+		tsv.push([v.id, v.title || '', v.name || '', v.start, v.end].join('\t').trimEnd())
+	}
+
+	const blob = new Blob([tsv.join('\n')], {type: "text/plain;charset=utf-8"})
+	const url = URL.createObjectURL(blob)
+	const a = document.createElement("a")
+	a.href = url
+	a.download = "Nindtest list.tsv"
+	a.click()
+	URL.revokeObjectURL(url)
+}
 function loadFromFile() {
 	// Load from TSV file
 	const input = document.createElement('input')
@@ -72,10 +99,28 @@ function loadFromFile() {
 			const rows = reader.result.split('\n')
 			const newVideoList = []
 			for(const r of rows) {
-				const cols = r.split('\t')
-				if(cols.length < 4) continue
-				if(!Number.isSafeInteger(cols[1]) || !Number.isSafeInteger(cols[2])) continue
-				newVideoList.push({id: cols[0], start: cols[1], end: cols[2], name: cols[3]})
+				const cols = r.trim().split('\t')
+
+				if(cols[0].length > 11) {
+					// Parse yt video URL to video id
+					let match = url.match(/(?:[^/]+\/)*([a-zA-Z0-9_-]{11})/)
+					if(match && match.length > 1)
+						cols[0] = match[1]
+					else {
+						// Extract url params, and find parameter "v"
+						match = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/)
+						if(match && match.length > 1)
+							cols[0] = match[1]
+					}
+				}
+				if(cols[0].length !== 11 || cols[0][0] === '#') continue
+
+				const dta = {id: cols[0]}
+				if(cols.length >= 2) dta['title'] = cols[1]
+				if(cols.length >= 3) dta['name'] = cols[2]
+				if(cols.length >= 4) dta['start'] = parseTime(cols[3])
+				if(cols.length >= 5) dta['end'] = parseTime(cols[4])
+				newVideoList.push(dta)
 			}
 			loadVideos(newVideoList)
 		}
@@ -83,7 +128,7 @@ function loadFromFile() {
 	}
 	input.click()
 }
-function loadFromInput() {
+function loadFromJson() {
 	// Load from JSON text
 	let txt_video_list = prompt("Paste the JSON video list below");
 	try {
@@ -110,6 +155,7 @@ async function loadVideos(vidsToAdd) {
 	isLoadingVideos = true
 
 	await waitUntilTrue(()=>videoPlayer.mute)
+	videoPlayer.mute()
 
 	let successCount = 0
 	const errorsMap = {}
@@ -139,8 +185,10 @@ async function loadVideos(vidsToAdd) {
 			errorsMap[videoPlayer.errMessage] = (errorsMap[videoPlayer.errMessage] || 0) +1
 			continue
 		}
-		videoPlayer.loadVideoById({videoId:vid_id, startSeconds:0, endSeconds:1})
-		await sleep(200)
+
+		// Load more info from the video by playing first seconds of it
+		videoPlayer.loadVideoById({videoId:vid_id, startSeconds:0, endSeconds:.34})
+		await waitUntilTrue(() => videoPlayer.getDuration() > 0)
 
 		// Process has been stopped while waiting
 		if(!isLoadingVideos) break
@@ -154,7 +202,7 @@ async function loadVideos(vidsToAdd) {
 			if(!currentlyLoading.author) currentlyLoading.author = vdata.author
 			if(!currentlyLoading.title) currentlyLoading.title = vdata.title
 
-			if(!currentlyLoading.end || currentlyLoading.end > duration) currentlyLoading.end = duration
+			if(duration && !currentlyLoading.end || currentlyLoading.end > duration) currentlyLoading.end = duration
 			if(!currentlyLoading.start) currentlyLoading.start = 0
 
 			videoList.push(currentlyLoading)
