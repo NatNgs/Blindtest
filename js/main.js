@@ -156,7 +156,7 @@ async function loadVideos(vidsToAdd) {
 			if(!currentlyLoading.title) currentlyLoading.title = vdata.title
 
 			if(duration && !currentlyLoading.end || currentlyLoading.end > duration) currentlyLoading.end = duration
-			if(!currentlyLoading.start) currentlyLoading.start = loaderPlayer.currentTime() || 0
+			if(!currentlyLoading.start) currentlyLoading.start = loaderPlayer.getCurrentTime() || 0
 
 			videoList.push(currentlyLoading)
 			document.getElementById('vid_count').innerHTML = `${videoList.length}`
