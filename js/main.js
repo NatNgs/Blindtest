@@ -124,7 +124,7 @@ async function loadVideos(vidsToAdd) {
 		// Open-it in the youtube player
 		loaderPlayer.errCode = null
 		loaderPlayer.errMessage = null
-		loaderPlayer.loadVideoById({videoId:vid_id, startSeconds:0, endSeconds:.34})
+		loaderPlayer.cueVideoById({videoId:vid_id, startSeconds:0, endSeconds:.34})
 
 		// Wait until video has been loaded
 		const hasBeenLoaded = await waitUntilTrue(() => loaderPlayer.errCode || loaderPlayer?.playerInfo?.videoData?.video_id === vid_id, 2000)
@@ -138,8 +138,8 @@ async function loadVideos(vidsToAdd) {
 		}
 
 		// Load more info from the video by playing first seconds of it
+		loaderPlayer.playVideo()
 		await waitUntilTrue(() => loaderPlayer.getDuration() > 0)
-		loaderPlayer.stopVideo()
 
 		// Process has been stopped while waiting
 		if(!isLoadingVideos) break
@@ -158,8 +158,9 @@ async function loadVideos(vidsToAdd) {
 
 			videoList.push(currentlyLoading)
 			document.getElementById('vid_count').innerHTML = `${videoList.length}`
+			successCount ++
 		}
-		successCount ++
+		loaderPlayer.stopVideo()
 	}
 
 	document.getElementById('load_count').innerHTML = loadingVideos.length
