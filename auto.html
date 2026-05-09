@@ -10,19 +10,8 @@
 		<script src="https://www.youtube.com/player_api" defer></script>
 	</head>
 	<body>
-		<div id="menu">
-			<h1>Welcome to NindTest</h1>
-
-			<br/>
-			<button onclick="loadFromList()">Load more</button><br/>
-			<button onclick="resetList()">Reset list</button><br/>
-			<button onclick="saveToFile()">Export loaded list</button><br/>
-			<br/>
-			<button onclick="onStart()">Start</button>
-		</div>
-
 		<!-- Header div, showing song name -->
-		<div id="banner">Loading...</div>
+		<div id="banner">Welcome !</div>
 
 		<!-- Center div -->
 		<div id="main">
@@ -44,6 +33,13 @@
 			<button id="playBtn" onclick="clickPlayPause()">Play/Pause</button>
 		</div>
 
-		<div id="loadStats">Loading: <span id="load_count">0</span>, Ready: <span id="vid_count">0</span></div>
+		<div id="loadStats">
+			Loading: <span id="load_count">0</span>
+			<button onclick="loadFromList()">Add from file</button>
+			<button onclick="loadFromPopup()">Add from url</button>
+			Ready: <span id="vid_count">0</span>
+			<button onclick="saveToFile()">Export loaded</button>
+			<button onclick="resetList()">Reset list</button>
+		</div>
 	</body>
 </html>
