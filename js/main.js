@@ -244,7 +244,7 @@ function onYoutubeErrorEvent(evt) {
 
 // Display the counter to 0
 function updateCounter() {
-	revealTime = videoList[ivideo]['start'] + guessingTime
+	revealTime = videoList[ivideo]['_start'] + guessingTime
 	currentTime = videoPlayer.getCurrentTime()
 	if(revealTime <= currentTime) {
 		let vdata = videoPlayer.getVideoData()
@@ -252,6 +252,12 @@ function updateCounter() {
 		curtain.style.display = 'none'
 		banner.innerHTML = soluce
 		curtain.style['backdrop-filter'] = ''
+		return
+	}
+	skipTime = revealTime + afterguessingTime
+	if(currentTime >= skipTime) {
+		// Fallback if youtube stop time doesnt works (unfortunately often happens)
+		setTimeout(playNextVideo, 100)
 		return
 	}
 
@@ -303,6 +309,7 @@ function playNextVideo() {
 		_start = Math.random() * (_end - guessingTime - afterguessingTime) + _start
 		_end = _start + guessingTime + afterguessingTime
 	}
+	videoList[ivideo]['_start'] = _start // For the counter start time
 
 	console.log('cued video:', ivideo, videoList[ivideo], {_start, _end})
 	videoPlayer.cueVideoById({'videoId': videoList[ivideo]['id'],
@@ -315,6 +322,7 @@ function playNextVideo() {
 	banner.innerHTML = '(loading song '+ (ivideo+1) + '/' + videoList.length +'...)'
 	counterElement.innerHTML = ''
 
+	// Fallback if video doesnt loads within 5 seconds
 	cuingTimeout = setTimeout(()=>{
 		if(!cued) {
 			playNextVideo()
