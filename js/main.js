@@ -14,6 +14,7 @@ async function waitUntilTrue(condition, maxwait=3000) {
 	let totalWait = 0
 	let i = 0
 	while(totalWait < maxwait) {
+		console.debug('[WAIT] Waiting', totalWait, '/', maxwait)
 		if(condition()) return true
 		totalWait += (++i)*50
 		await sleep(i*50)
@@ -72,6 +73,8 @@ function onYouTubeIframeAPIReady() {
 	curtain = document.getElementById('curtain')
 	counterElement = document.getElementById('counter')
 	banner = document.getElementById('banner')
+
+	loaderPlayer.mute()
 }
 
 function parseTime(timeAsText) {
@@ -102,8 +105,6 @@ async function loadVideos(vidsToAdd) {
 
 	isLoadingVideos = true
 
-	loaderPlayer.mute()
-
 	let successCount = 0
 	const errorsMap = {}
 	while(loadingVideos.length) {
@@ -126,7 +127,7 @@ async function loadVideos(vidsToAdd) {
 		loaderPlayer.errCode = null
 		loaderPlayer.errMessage = null
 		console.debug('[LOAD] Cuing')
-		loaderPlayer.cueVideoById({videoId:vid_id, startSeconds:0, endSeconds:.34})
+		loaderPlayer.cueVideoById(vid_id)
 
 		// Wait until video has been loaded
 		const hasBeenLoaded = await waitUntilTrue(() => loaderPlayer.errCode || loaderPlayer?.playerInfo?.videoData?.video_id === vid_id, 2000)
