@@ -142,6 +142,7 @@ async function loadVideos(vidsToAdd) {
 		// Load more info from the video by playing first seconds of it
 		loaderPlayer.loadVideoById({videoId:vid_id, startSeconds:0, endSeconds:.34})
 		await waitUntilTrue(() => loaderPlayer.getDuration() > 0)
+		loaderPlayer.stopVideo()
 
 		// Process has been stopped while waiting
 		if(!isLoadingVideos) break
@@ -167,7 +168,6 @@ async function loadVideos(vidsToAdd) {
 
 	document.getElementById('load_count').innerHTML = loadingVideos.length
 	isLoadingVideos = false
-	loaderPlayer.stopVideo()
 
 	for(const errMessage in errorsMap) {
 		toast(`${errorsMap[errMessage]} videos excluded: ${errMessage}`, '', 5000)
