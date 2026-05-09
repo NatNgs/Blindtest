@@ -73,8 +73,6 @@ function onYouTubeIframeAPIReady() {
 	curtain = document.getElementById('curtain')
 	counterElement = document.getElementById('counter')
 	banner = document.getElementById('banner')
-
-	loaderPlayer.mute()
 }
 
 function parseTime(timeAsText) {
@@ -104,6 +102,9 @@ async function loadVideos(vidsToAdd) {
 	if(isLoadingVideos) return
 
 	isLoadingVideos = true
+
+	await waitUntilTrue(() => loaderPlayer.mute) // Wait until the function is available (may take a few ms), also does assert that the player is ready
+	loaderPlayer.mute()
 
 	let successCount = 0
 	const errorsMap = {}
