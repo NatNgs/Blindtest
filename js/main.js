@@ -45,7 +45,8 @@ function onYouTubeIframeAPIReady() {
 		controls: 0,
 		iv_load_policy: 3,
 		rel: 0,
-	});
+		origin: document.baseURI,
+	})
 
 	curtain = document.getElementById('curtain')
 	counterElement = document.getElementById('counter')
@@ -192,7 +193,7 @@ function updateCounter() {
 }
 
 // Prepare the next video to play
-function playNextVideo() {
+async function playNextVideo() {
 	// reset flags
 	cued = false
 	clearInterval(countInter)
@@ -216,7 +217,6 @@ function playNextVideo() {
 		else counterElement.innerHTML = '<div>No video are loaded yet</div>'
 		clearInterval(countInter)
 		ivideo = -1
-		document.getElementById('menu').removeAttribute('hidden')
 		return
 	}
 
@@ -234,19 +234,18 @@ function playNextVideo() {
 	})
 
 	// Wait until video has been loaded
-	const hasBeenLoaded = await waitUntilTrue(() => videoPlayer.errCode || videoPlayer?.playerInfo?.videoData?.video_id === vid_id, 2000)
+	const hasBeenLoaded = await waitUntilTrue(() => videoPlayer.errCode || videoPlayer?.playerInfo?.videoData?.video_id === picked['id'], 2000)
 	if(!hasBeenLoaded) {
 		videoPlayer.errCode = -1
 		videoPlayer.errMessage = 'Loading timeout'
 	}
 	if(videoPlayer.errCode) {
-		console.error('Video player raised error code',videoPlayer.errCode, 'while loading video ' + vid_id + ':', videoPlayer.errMessage)
-		errorsMap[videoPlayer.errMessage] = (errorsMap[videoPlayer.errMessage] || 0) +1
+		toast('Youtube sent an error while loading video ' + picked['id'] + ': ' + videoPlayer.errMessage, 'toast-err')
 		return playNextVideo()
 	}
 	const vdata = videoPlayer.getVideoData()
 	if(!vdata || !vdata.isPlayable || vdata.errorCode) {
-		console.error('Video', vid_id, 'is not playable', vdata.errCode)
+		toast('Video ' + picked['id'] + ' failed to be played ' + (vdata.errCode || ''), 'toast-err')
 		return playNextVideo()
 	}
 
