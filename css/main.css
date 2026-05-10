@@ -78,6 +78,11 @@ body {
 }
 
 /* FOOTER */
+button {
+	border: 0;
+	background-color: #CCC;
+	cursor: pointer;
+}
 button:hover {
 	/* When the mouse is hovering the button */
 	filter: brightness(120%);
@@ -88,13 +93,11 @@ button:active {
 }
 #skipBtn {
 	font-size: 2em;
-	width: 68%;
+	width: 67%;
 	height: 100%;
 	padding: 0;
 	margin: 0;
-	border: 0;
 	background-color: darkcyan;
-	cursor: pointer;
 }
 #playBtn {
 	font-size: 2em;
@@ -102,7 +105,5 @@ button:active {
 	height: 100%;
 	padding: 0;
 	margin: 0;
-	border: 0;
 	background-color: darkmagenta;
-	cursor: pointer;
 }

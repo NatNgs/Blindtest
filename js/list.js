@@ -50,7 +50,7 @@ function loadFromList() {
 				const ldd = parse_vid(p)
 				if(ldd) newVideoList.push(ldd)
 			}
-			loadVideos(newVideoList)
+			addVideos(newVideoList)
 		}
 		reader.readAsText(file)
 	}
@@ -66,6 +66,6 @@ function loadFromPopup() {
 			const ldd = parse_vid(p)
 			if(ldd) newVideoList.push(ldd)
 		}
-		loadVideos(newVideoList)
+		addVideos(newVideoList)
 	}
 }
