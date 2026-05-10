@@ -115,12 +115,8 @@ function onYouTubeEventStateChange(evt) {
 	if (!gameStarted) {
 		return
 	}
-	if (evt.data == YT.PlayerState.CUED && !cued && videoList[ivideo]['_start']) {
+	if (evt.data == YT.PlayerState.CUED) {
 		cued = true
-		if(videoList[ivideo]['name']) banner.innerHTML = '(' + videoList[ivideo]['name'] + ')'
-		else banner.innerHTML = (ivideo+1)
-		counterElement.innerHTML = '<br>' + guessingTime
-		setTimeout(playVideo, 0)
 	} else if (evt.data == YT.PlayerState.PLAYING && !timerStarted) {
 		if(countInter) clearInterval(countInter)
 		countInter = setInterval(updateCounter, 125)
@@ -194,7 +190,6 @@ function updateCounter() {
 // Prepare the next video to play
 async function playNextVideo() {
 	// reset flags
-	cued = false
 	clearInterval(countInter)
 	clearTimeout(cuingTimeout)
 	timerStarted = false
@@ -226,6 +221,7 @@ async function playNextVideo() {
 	videoList[ivideo] = picked
 
 	// cue a new video and get its information (length)
+	cued = false
 	videoPlayer.cueVideoById({
 		'videoId': picked['id'],
 		'startSeconds': 0,
@@ -240,12 +236,12 @@ async function playNextVideo() {
 	}
 	if(videoPlayer.errCode) {
 		toast('Youtube sent an error while loading video ' + picked['id'] + ': ' + videoPlayer.errMessage, 'toast-err')
-		return playNextVideo()
+		return setTimeout(playNextVideo, 1000)
 	}
 	const vdata = videoPlayer.getVideoData()
 	if(!vdata || !vdata.isPlayable || vdata.errorCode) {
 		toast('Video ' + picked['id'] + ' failed to be played ' + (vdata.errCode || ''), 'toast-err')
-		return playNextVideo()
+		return setTimeout(playNextVideo, 1000)
 	}
 
 	let _start = videoPlayer.getCurrentTime() || 0
@@ -257,7 +253,11 @@ async function playNextVideo() {
 	}
 	picked['_start'] = _start // For the counter start time
 
-	console.log('cued video:', ivideo, picked, {_start, _end})
+	console.log('Playing video', ivideo, picked, {_start, _end})
+	if(videoList[ivideo]['name']) banner.innerHTML = '(' + videoList[ivideo]['name'] + ')'
+	else banner.innerHTML = (ivideo+1)
+	counterElement.innerHTML = '<br>' + guessingTime
+	cued = false
 	videoPlayer.loadVideoById({'videoId': picked['id'],
 		'startSeconds': _start,
 		'endSeconds': _end,
@@ -271,6 +271,7 @@ async function playNextVideo() {
 	// Fallback if video doesnt loads within 5 seconds
 	cuingTimeout = setTimeout(()=>{
 		if(!cued) {
+			toast('Video ' + picked['id'] + " hasn't started after 5s, autoskip")
 			playNextVideo()
 		}
 	}, 5000)
