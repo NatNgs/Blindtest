@@ -45,7 +45,6 @@ function onYouTubeIframeAPIReady() {
 		controls: 0,
 		iv_load_policy: 3,
 		rel: 0,
-		origin: document.baseURI,
 	})
 
 	curtain = document.getElementById('curtain')
@@ -116,12 +115,12 @@ function onYouTubeEventStateChange(evt) {
 	if (!gameStarted) {
 		return
 	}
-	if (evt.data == YT.PlayerState.CUED && !cued) {
+	if (evt.data == YT.PlayerState.CUED && !cued && videoList[ivideo]['_start']) {
 		cued = true
 		if(videoList[ivideo]['name']) banner.innerHTML = '(' + videoList[ivideo]['name'] + ')'
 		else banner.innerHTML = (ivideo+1)
 		counterElement.innerHTML = '<br>' + guessingTime
-		if(videoList[ivideo]['_start']) setTimeout(playVideo, 0)
+		setTimeout(playVideo, 0)
 	} else if (evt.data == YT.PlayerState.PLAYING && !timerStarted) {
 		if(countInter) clearInterval(countInter)
 		countInter = setInterval(updateCounter, 125)
@@ -259,7 +258,7 @@ async function playNextVideo() {
 	picked['_start'] = _start // For the counter start time
 
 	console.log('cued video:', ivideo, picked, {_start, _end})
-	videoPlayer.cueVideoById({'videoId': picked['id'],
+	videoPlayer.loadVideoById({'videoId': picked['id'],
 		'startSeconds': _start,
 		'endSeconds': _end,
 	})

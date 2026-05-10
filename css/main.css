@@ -82,6 +82,7 @@ button {
 	border: 0;
 	background-color: #CCC;
 	cursor: pointer;
+	padding: 3px;
 }
 button:hover {
 	/* When the mouse is hovering the button */
@@ -95,7 +96,6 @@ button:active {
 	font-size: 2em;
 	width: 67%;
 	height: 100%;
-	padding: 0;
 	margin: 0;
 	background-color: darkcyan;
 }
@@ -103,7 +103,6 @@ button:active {
 	font-size: 2em;
 	width: 29%;
 	height: 100%;
-	padding: 0;
 	margin: 0;
 	background-color: darkmagenta;
 }
