@@ -1,12 +1,3 @@
-Array.prototype.shuffle = function() {
-	for(let i = this.length-1; i > 0; i--) {
-		let rnd = (Math.random() * this.length)|0
-		if(rnd == i) continue
-		let tmp = this[rnd]
-		this[rnd] = this[i]
-		this[i] = tmp
-	}
-}
 async function sleep(ms) {
 	await new Promise(resolve => setTimeout(resolve, ms))
 }
@@ -91,10 +82,23 @@ function parseTime(timeAsText) {
 }
 
 
-function resetList() {
+async function resetList() {
+	if(playing) {
+		videoPlayer.stopVideo()
+		playing = false
+	}
+	if(countInter) clearInterval(countInter)
+	if(cuingTimeout) clearTimeout(cuingTimeout)
+	counterElement.innerHTML = '<div>Reseting...</div>'
+
 	loadingVideos.length = 0
 	videoList.length = 0
 	isLoadingVideos = false
+
+	await sleep(1000)
+	document.getElementById('vid_count').innerText = videoList.length
+	document.getElementById('load_count').innerText = loadingVideos.length
+	counterElement.innerHTML = '<div>Cleared</div>'
 }
 
 async function loadVideos(vidsToAdd) {
@@ -169,7 +173,7 @@ async function loadVideos(vidsToAdd) {
 
 			console.debug('[LOAD] Inserting')
 			videoList.push(currentlyLoading)
-			document.getElementById('vid_count').innerHTML = `${videoList.length}`
+			document.getElementById('vid_count').innerHTML = videoList.length
 			successCount ++
 		}
 		console.debug('[LOAD] Stopping video')
@@ -191,7 +195,6 @@ function onStart() {
 		return
 	}
 
-	videoList.shuffle()
 	document.getElementById('menu').setAttribute('hidden', 'hidden')
 	videoPlayer.unMute()
 
@@ -212,7 +215,7 @@ function onYouTubeEventStateChange(evt) {
 	if (evt.data == YT.PlayerState.CUED && !cued) {
 		cued = true
 		if(videoList[ivideo]['name']) banner.innerHTML = '(' + videoList[ivideo]['name'] + ')'
-		else banner.innerHTML = ''
+		else banner.innerHTML = (ivideo+1) + '/' + videoList.length
 		counterElement.innerHTML = '<br>' + guessingTime
 		setTimeout(playVideo, 100)
 	} else if (evt.data == YT.PlayerState.PLAYING && !timerStarted) {
@@ -296,21 +299,28 @@ function playNextVideo() {
 
 	// increase video index
 	if(ivideo < 0) {
-		videoList.shuffle()
 		ivideo = 0
 	} else {
 		ivideo ++
 	}
+	document.getElementById('played_count').innerText = ivideo
 
 	// if no more video, stop player and return
 	if (ivideo >= videoList.length) {
 		curtain.style.display = 'block'
-		counterElement.innerHTML = '<div>End of the blind test !</div>'
+		if(videoList.length > 0) counterElement.innerHTML = '<div>End of the blind test !</div>'
+		else counterElement.innerHTML = '<div>No video are loaded yet</div>'
 		clearInterval(countInter)
 		ivideo = -1
 		document.getElementById('menu').removeAttribute('hidden')
 		return
 	}
+
+	// Pick a random video from the remaining elements (Get a random element in the list from ivideo to the end, exchange list position of these such as the randomly picked one is at index ivideo)
+	let rnd = Math.random() * (videoList.length - ivideo) + ivideo
+	let tmp = videoList[rnd]
+	videoList[rnd] = videoList[ivideo]
+	videoList[ivideo] = tmp
 
 	// cue a new video (it will be played once cued)
 
@@ -331,8 +341,8 @@ function playNextVideo() {
 
 	// reset counter end drop the curtain
 	curtain.style.display = 'block'
-	banner.innerHTML = '(loading song '+ (ivideo+1) + '/' + videoList.length +'...)'
-	counterElement.innerHTML = ''
+	banner.innerText = '(loading song '+ (ivideo+1) + '/' + videoList.length +'...)'
+	counterElement.innerText = ''
 
 	// Fallback if video doesnt loads within 5 seconds
 	cuingTimeout = setTimeout(()=>{

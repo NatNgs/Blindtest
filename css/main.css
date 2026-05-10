@@ -5,6 +5,7 @@ html, body {
 	min-width: 100%;
 	width: 100%;
 	overflow: hidden;
+	font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif
 }
 body {
 	background-color: black;
@@ -27,8 +28,8 @@ body {
 /* HEADER */
 #banner {
 	overflow: hidden;
-	font-size: 3em;
-	height: 1.25em;
+	font-size: 4em;
+	height: 1.33em;
 	text-align: center;
 	color: wheat;
 }
@@ -51,6 +52,7 @@ body {
 	position: fixed;
 	bottom: 1em;
 	left: 1em;
+	height: 1.25em;
 	color: white;
 	z-index: 101;
 }
@@ -76,6 +78,14 @@ body {
 }
 
 /* FOOTER */
+button:hover {
+	/* When the mouse is hovering the button */
+	filter: brightness(120%);
+}
+button:active {
+	/* When the mouse is pressed down on the button */
+	filter: brightness(150%);
+}
 #skipBtn {
 	font-size: 2em;
 	width: 68%;

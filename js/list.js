@@ -1,14 +1,14 @@
 
 
 // Prepare playlist
-function saveToFile() {
+function saveToFile(saveOnlyUnplayed=false) {
 	// Ask to save text file .tsv
-	const tsv = []
-	for(const v of videoList) {
-		tsv.push(v.id)
+	const list = []
+	for(const i = (saveOnlyUnplayed ? ivideo+1 : 0); i<videoList.length; i++) {
+		list.push(videoList[i].id)
 	}
 
-	const blob = new Blob([tsv.join(' ')], {type: "text/plain;charset=utf-8"})
+	const blob = new Blob([list.join(' ')], {type: "text/plain;charset=utf-8"})
 	const url = URL.createObjectURL(blob)
 	const a = document.createElement("a")
 	a.href = url

@@ -2,13 +2,46 @@
 <html>
 	<head>
 		<meta charset="utf-8"/>
-		<link rel="stylesheet" href="css/index.css">
+		<link rel="stylesheet" href="css/main.css">
+		<link rel="stylesheet" href="css/toasts.css" defer>
+		<script src="js/main.js"></script>
+		<script src="js/list.js"></script>
+		<script src="js/toasts.js" defer></script>
+		<script src="https://www.youtube.com/player_api" defer></script>
 	</head>
 	<body>
+		<!-- Header div, showing song name -->
+		<div id="banner">Welcome !</div>
+
 		<!-- Center div -->
 		<div id="main">
-			<a href="auto.html" style="background-color: greenyellow;">Auto mode</a>
-			<a href="advanced.html" style="background-color: orange;">Advanced mode</a>
+			<div>
+				<!-- Youtube video player -->
+				<div id="loader" style="z-index: -1; position: fixed; top: -300px; left: -300px;"></div>
+				<div id="player" style="z-index: 0; position: absolute; margin-left: auto; margin-right: auto;"></div>
+
+				<!-- Curatain to hide playing video -->
+				<div id="curtain">
+					<p id="counter"></p>
+				</div>
+			</div>
+		</div>
+
+		<!-- Footer div -->
+		<div style="height: 4em;">
+			<button id="skipBtn" onclick="clickNext()">Next</button>
+			<button id="playBtn" onclick="clickPlayPause()">Play/Pause</button>
+		</div>
+
+		<div id="loadStats">
+			<button onclick="loadFromList()">Add from file</button>
+			<button onclick="loadFromPopup()">Add from url</button>
+			Loading: <span id="load_count">0</span>,
+			Ready: <span id="vid_count">0</span>,
+			Played: <span id="played_count">0</span>
+			<button onclick="saveToFile()">Save all</button>
+			<button onclick="saveToFile(true)">Save remaining</button>
+			<button onclick="resetList()">Reset</button>
 		</div>
 	</body>
 </html>
