@@ -317,24 +317,24 @@ function playNextVideo() {
 	}
 
 	// Pick a random video from the remaining elements (Get a random element in the list from ivideo to the end, exchange list position of these such as the randomly picked one is at index ivideo)
-	let rnd = Math.random() * (videoList.length - ivideo) + ivideo
-	let tmp = videoList[rnd]
+	const rnd = ((Math.random() * (videoList.length - ivideo))|0) + ivideo
+	const picked = videoList[rnd]
 	videoList[rnd] = videoList[ivideo]
-	videoList[ivideo] = tmp
+	videoList[ivideo] = picked
 
 	// cue a new video (it will be played once cued)
 
-	let _start = videoList[ivideo]['start']
-	let _end = videoList[ivideo]['end']
+	let _start = picked['start']
+	let _end = picked['end']
 	if(_end - _start > guessingTime + afterguessingTime) {
 		// Randomize where to start between _start and (_end - 2*guessintTime), then set _end = (_start + 2*guessingTime)
 		_start = Math.random() * (_end - guessingTime - afterguessingTime) + _start
 		_end = _start + guessingTime + afterguessingTime
 	}
-	videoList[ivideo]['_start'] = _start // For the counter start time
+	picked['_start'] = _start // For the counter start time
 
-	console.log('cued video:', ivideo, videoList[ivideo], {_start, _end})
-	videoPlayer.cueVideoById({'videoId': videoList[ivideo]['id'],
+	console.log('cued video:', ivideo, picked, {_start, _end})
+	videoPlayer.cueVideoById({'videoId': picked['id'],
 		'startSeconds': _start,
 		'endSeconds': _end,
 	})
