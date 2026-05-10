@@ -116,7 +116,6 @@ async function loadVideos(vidsToAdd) {
 	let successCount = 0
 	const errorsMap = {}
 	while(loadingVideos.length) {
-		console.debug('[LOAD] next')
 		document.getElementById('load_count').innerHTML = loadingVideos.length
 
 		// Pick a random element from loadingVideo
@@ -134,24 +133,21 @@ async function loadVideos(vidsToAdd) {
 		// Open-it in the youtube player
 		loaderPlayer.errCode = null
 		loaderPlayer.errMessage = null
-		console.debug('[LOAD] Cuing')
 		loaderPlayer.cueVideoById(vid_id)
 
 		// Wait until video has been loaded
-		console.debug('[LOAD] Wait until video is loaded')
 		const hasBeenLoaded = await waitUntilTrue(() => loaderPlayer.errCode || loaderPlayer?.playerInfo?.videoData?.video_id === vid_id, 2000)
 		if(!hasBeenLoaded) {
 			loaderPlayer.errCode = -1
 			loaderPlayer.errMessage = 'Loading timeout'
 		}
 		if(loaderPlayer.errCode) {
-			console.debug('[LOAD] Error', loaderPlayer.errCode, loaderPlayer.errMessage)
+			console.error('Video player raised error code',loaderPlayer.errCode, 'while loading video ' + vid_id + ':', loaderPlayer.errMessage)
 			errorsMap[loaderPlayer.errMessage] = (errorsMap[loaderPlayer.errMessage] || 0) +1
 			continue
 		}
 
 		// Load more info from the video by playing first seconds of it
-		console.debug('[LOAD] Playing')
 		loaderPlayer.playVideo()
 		await waitUntilTrue(() => loaderPlayer.getDuration() > 0.1)
 
@@ -159,7 +155,6 @@ async function loadVideos(vidsToAdd) {
 		if(!isLoadingVideos) break
 
 		// Extract video data, and if isPlayable is true, add its info to videoList (and increment loaded video counter)
-		console.debug('[LOAD] Get video data')
 		const vdata = loaderPlayer.getVideoData()
 		if(vdata && vdata.isPlayable && !vdata.errorCode) {
 			const duration = loaderPlayer.getDuration()
@@ -171,12 +166,10 @@ async function loadVideos(vidsToAdd) {
 			if(duration && !currentlyLoading.end || currentlyLoading.end > duration) currentlyLoading.end = duration
 			if(!currentlyLoading.start) currentlyLoading.start = loaderPlayer.getCurrentTime() || 0
 
-			console.debug('[LOAD] Inserting')
 			videoList.push(currentlyLoading)
 			document.getElementById('vid_count').innerHTML = videoList.length
 			successCount ++
 		}
-		console.debug('[LOAD] Stopping video')
 		loaderPlayer.stopVideo()
 	}
 
@@ -215,10 +208,11 @@ function onYouTubeEventStateChange(evt) {
 	if (evt.data == YT.PlayerState.CUED && !cued) {
 		cued = true
 		if(videoList[ivideo]['name']) banner.innerHTML = '(' + videoList[ivideo]['name'] + ')'
-		else banner.innerHTML = (ivideo+1) + '/' + videoList.length
+		else banner.innerHTML = (ivideo+1)
 		counterElement.innerHTML = '<br>' + guessingTime
 		setTimeout(playVideo, 100)
 	} else if (evt.data == YT.PlayerState.PLAYING && !timerStarted) {
+		if(countInter) clearInterval(countInter)
 		countInter = setInterval(updateCounter, 100)
 	} else if (evt.data == YT.PlayerState.ENDED) {
 		playing = false
