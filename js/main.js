@@ -104,14 +104,13 @@ function addVideos(vidsToAdd) {
 
 // When video player sends an event (video started, stopped, loaded, ...)
 let timerStarted = false
-let onVideoCued = null
 function onYouTubeEventStateChange(evt) {
     evt.target.errMessage = undefined
     evt.target.errCode = undefined
 
-    if (onVideoCued && evt.data == YT.PlayerState.CUED) {
-        onVideoCued(evt)
-        onVideoCued = null
+    if (videoPlayer._onCued && evt.data == YT.PlayerState.CUED) {
+        videoPlayer._onCued(evt)
+        videoPlayer._onCued = null
     } else if (evt.data == YT.PlayerState.PLAYING && !timerStarted) {
         if(countInter) clearInterval(countInter)
         countInter = setInterval(_updateCounter, 125)
@@ -175,7 +174,7 @@ function _updateCounter() {
         return
     } else if(currentTime >= revealTime) {
         curtain.style.display = 'none'
-        banner.innerHTML = (videoPlayer.getVideoData()['title'] || '')
+        counterElement.innerHTML = (videoPlayer.getVideoData()['author'] || '')
 			+ '<br/>' + (videoPlayer.getVideoData()['title'] || '')
         curtain.style['backdrop-filter'] = ''
         return
@@ -217,7 +216,7 @@ async function _pickNextVideo() {
 
     // cue a new video
     cued = false
-    onVideoCued = ()=>{cued = true}
+    videoPlayer._onCued = ()=>{cued = true}
 	videoPlayer.errorCode = 0
 	videoPlayer.mute()
     videoPlayer.cueVideoById({
@@ -289,7 +288,7 @@ async function playNextVideo() {
     if(fallbackTimeout) clearTimeout(fallbackTimeout) // Clear previous fallback
     fallbackTimeout = null
 
-    onVideoCued = null
+    videoPlayer._onCued = null
     timerStarted = false
 
     banner.innerText = '(loading '+ (ivideo+2) + '/' + videoList.length +'...)'
@@ -310,29 +309,29 @@ async function playNextVideo() {
     // Clear any existing timeout first
     if(cuingTimeout) clearTimeout(cuingTimeout)
 
-    cuingTimeout = setTimeout(()=>{
-        // Only trigger if we haven't successfully moved on
-        if(cuingTimeout && !resetRequested && isTransitioning) {
-            toast('Video ' + picked['id'] + " hasn't started after 5s, autoskip")
-            setTimeout(playNextVideo)
-        }
-    }, 5000)
-
     // Clear fallback immediately on success cue
-    onVideoCued = ()=> {
+    videoPlayer._onCued = ()=> {
         clearTimeout(cuingTimeout)
         cuingTimeout = null
 
 		// Show clue
-		if(picked['name']) banner.innerHTML = '(' + picked['name'] + ')'
+		if(picked['name']) banner.innerText = '(' + picked['name'] + ')'
     	else banner.innerText = (ivideo+1)
     }
 
-	videoPlayer.unmute()
+	videoPlayer.unMute()
     videoPlayer.loadVideoById({'videoId': picked['id'],
         'startSeconds': picked['_start'],
         'endSeconds': picked['_end'],
     })
+
+    cuingTimeout = setTimeout(()=>{
+        // Only trigger if we haven't successfully moved on
+        if(cuingTimeout && !resetRequested) {
+            toast('Video ' + picked['id'] + " hasn't started after 5s, autoskip")
+            setTimeout(playNextVideo)
+        }
+    }, 5000)
 
     isTransitioning = false
 }
