@@ -25,7 +25,6 @@ let curtain = null
 let counterElement = null
 let countInter = null
 let cuingTimeout = null
-let banner = null
 let playing = false
 let videoPlayer
 
@@ -52,7 +51,6 @@ function onYouTubeIframeAPIReady() {
 
 	curtain = document.getElementById('curtain')
 	counterElement = document.getElementById('counter')
-	banner = document.getElementById('banner')
 }
 
 function parseTime(timeAsText) {
@@ -98,7 +96,7 @@ function addVideos(vidsToAdd) {
 		console.log(vidsToAdd)
 		videoList.push(... vidsToAdd)
 
-		document.getElementById('vid_count').innerText = videoList.length - (ivideo+1)
+		document.getElementById('vid_count').innerText = videoList.length
 	}
 }
 
@@ -204,12 +202,10 @@ async function _pickNextVideo() {
     // if no more video, stop player and return
     if (ivideo >= videoList.length) {
         curtain.style.display = 'block'
-        if(videoList.length > 0) counterElement.innerHTML = '<div>End !</div>'
-        else counterElement.innerHTML = '<div>No video loaded</div>'
+        if(videoList.length > 0) counterElement.innerText = 'End !'
+        else counterElement.innerText = 'No video loaded'
         return null
     }
-
-	banner.innerText = '(loading '+ (ivideo+1) + '/' + videoList.length +'...)'
 
     // Pick a random video
     const rnd = ((Math.random() * (videoList.length - ivideo))|0) + ivideo
@@ -303,7 +299,6 @@ async function playNextVideo() {
 	if(!picked) return resetList()
 
     document.getElementById('played_count').innerText = ivideo+1
-    document.getElementById('vid_count').innerText = videoList.length - (ivideo+1)
 
     console.log('Playing video', ivideo, picked)
 
@@ -317,14 +312,10 @@ async function playNextVideo() {
         clearTimeout(cuingTimeout)
         cuingTimeout = null
 
-		// Show clue
-		if(picked['name']) banner.innerText = '(' + picked['name'] + ')'
-    	else banner.innerText = (ivideo+1)
-
 		videoPlayer._onCued = null
+		videoPlayer.unMute()
     }
 
-	videoPlayer.unMute()
     videoPlayer.loadVideoById({'videoId': picked['id'],
         'startSeconds': picked['_start'],
         'endSeconds': picked['_end'],
@@ -362,17 +353,11 @@ function clickNext() {
 }
 
 function clickPlayPause() {
-	if(cued) {
-		if(playing) {
-			videoPlayer.pauseVideo()
-			playing = false
-		} else {
-			playVideo()
-		}
+	if(videoPlayer.getPlayerState() === YT.PlayerState.PLAYING) {
+		videoPlayer.pauseVideo()
+		playing = false
+	} else {
+		videoPlayer.playVideo()
+		playing = true
 	}
-}
-
-function playVideo() {
-	videoPlayer.playVideo()
-	playing = true
 }

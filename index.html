@@ -13,7 +13,7 @@
 	</head>
 	<body>
 		<!-- Header div, showing song name -->
-		<div id="banner">Welcome !</div>
+		<div id="banner"><span id="vid_count">0</span> / <span id="played_count">0</span></div>
 
 		<!-- Center div -->
 		<div id="main">
@@ -36,10 +36,10 @@
 		<div id="loadStats">
 			<button onclick="loadFromList()">Add from file</button>
 			<button onclick="loadFromPopup()">Add from url</button>
-			Remaining: <span id="vid_count">0</span>,
-			Played: <span id="played_count">0</span>
-			<button onclick="saveToFile(true)">Save remaining</button>
+			&nbsp;
 			<button onclick="saveToFile()">Save all</button>
+			<button onclick="saveToFile(true)">Save remaining</button>
+			&nbsp;
 			<button onclick="clearList()">Reset</button>
 		</div>
 	</body>
