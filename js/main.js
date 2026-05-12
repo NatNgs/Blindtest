@@ -19,7 +19,6 @@ const GUESSING_TIME = 20 // seconds
 const AFTER_GUESSING_TIME = 10 // seconds
 
 // Local variables
-let loadingVideos = [], isLoadingVideos = false
 let videoList = [] // [{id: .., start: .., end: .., name: ..}, ...]
 let ivideo = -1
 let curtain = null
@@ -68,7 +67,7 @@ function parseTime(timeAsText) {
 	return undefined
 }
 
-function clearStatus() {
+function resetList() {
 	// Signal any running async operation to stop immediately
     isTransitioning = false
 
@@ -81,15 +80,13 @@ function clearStatus() {
     }
 
     ivideo = -1
-    loadingVideos.length = 0
-    videoList.length = 0
-    isLoadingVideos = false
 }
-async function resetList() {
+async function clearList() {
 	resetRequested = true
     counterElement.innerHTML = '<div>Reseting...</div>'
 
-	clearStatus()
+	resetList()
+    videoList.length = 0
 
     await sleep(1000)
 
@@ -108,18 +105,6 @@ function addVideos(vidsToAdd) {
 		document.getElementById('vid_count').innerText = videoList.length - (ivideo+1)
 	}
 }
-function onStart() {
-	if(videoList.length < 3) {
-		alert(videoList.length + ' videos are ready. Minimum 3 are required to start')
-		return
-	}
-
-	document.getElementById('menu').setAttribute('hidden', 'hidden')
-	videoPlayer.unMute()
-
-	clickNext()
-}
-
 
 // When video player sends an event (video started, stopped, loaded, ...)
 let timerStarted = false
@@ -225,9 +210,6 @@ async function _pickNextVideo() {
         ivideo ++
     }
 
-    document.getElementById('played_count').innerText = ivideo
-    document.getElementById('vid_count').innerText = videoList.length - (ivideo+1)
-
     // if no more video, stop player and return
     if (ivideo >= videoList.length) {
         curtain.style.display = 'block'
@@ -319,8 +301,14 @@ async function playNextVideo() {
     curtain.style.display = 'block'
     counterElement.innerText = ''
 
+	// Mark skip button as enabled
+	document.getElementById('skipBtn').disabled = false
+
 	const picked = await _pickNextVideo()
-	if(!picked) return clearStatus()
+	if(!picked) return resetList()
+
+    document.getElementById('played_count').innerText = ivideo
+    document.getElementById('vid_count').innerText = videoList.length - (ivideo+1)
 
     console.log('Playing video', ivideo, picked)
     if(videoList[ivideo]['name']) banner.innerHTML = '(' + videoList[ivideo]['name'] + ')'
@@ -355,7 +343,17 @@ async function playNextVideo() {
     banner.innerText = (ivideo+1) + '/' + videoList.length
     isTransitioning = false;
 }
+
+function clickStart() {
+	const btn = document.getElementById('skipBtn')
+	btn.innerText = 'Next'
+	btn.onclick = clickNext
+	clickNext()
+}
 function clickNext() {
+	// Mark skip button as disabled
+	document.getElementById('skipBtn').disabled = true
+
     // If already transitioning, ignore click
 	if(isTransitioning) return
 

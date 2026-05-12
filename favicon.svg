@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="12 12 104 104" stroke="#DB3" fill="#DB3">
 	<ellipse cx="66" cy="62" rx="55" ry="45" transform="rotate(-38 64 64)"
-		fill="#3458" stroke="none"/>
+		fill="#234" stroke="none"/>
 
 	<g stroke-linecap="round" stroke-linejoin="round">
 		<!-- 1. The Eye Outline (Pointy Almond Shape) -->
