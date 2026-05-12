@@ -27,7 +27,7 @@ let countInter = null
 let cuingTimeout = null
 let banner = null
 let playing = false
-let videoPlayer;
+let videoPlayer
 
 // Concurrency and State Control
 let isTransitioning = false; // Prevents concurrent playNextVideo calls
@@ -162,8 +162,8 @@ function onYoutubeErrorEvent(evt) {
 function _updateCounter() {
     // Safety check for valid state
     if(ivideo < 0 || ivideo >= videoList.length || !videoList[ivideo]) {
-        clearInterval(countInter);
-        return;
+        clearInterval(countInter)
+        return
     }
 
 	seekTime = videoList[ivideo]['_start']
@@ -179,7 +179,7 @@ function _updateCounter() {
         // Prevent double trigger if transition already started
         if(!isTransitioning && !resetRequested) {
             // Clear interval immediately to prevent re-entry
-            if(countInter) clearInterval(countInter);
+            if(countInter) clearInterval(countInter)
             setTimeout(playNextVideo, 100)
         }
         return
@@ -244,14 +244,14 @@ async function _pickNextVideo() {
 
     // Abort if reset was triggered during wait
     if (resetRequested) {
-        isTransitioning = false;
-        return null;
+        isTransitioning = false
+        return null
     }
 
     if(!hasBeenLoaded || videoPlayer.errCode) {
         if(!videoPlayer.errCode) videoPlayer.errCode = -1, videoPlayer.errMessage = 'Loading timeout'
         toast('Error while loading video ' + picked['id'] + ': ' + videoPlayer.errMessage, 'toast-err')
-        isTransitioning = false;
+        isTransitioning = false
         // Retry logic: wait then call self (which will re-check locks)
 		await sleep(1000)
         return _pickNextVideo()
@@ -260,7 +260,7 @@ async function _pickNextVideo() {
     const vdata = videoPlayer.getVideoData()
     if(!vdata || !vdata.isPlayable || vdata.errorCode) {
         toast('Video ' + picked['id'] + ' failed to be played ' + (vdata.errCode || ''), 'toast-err')
-        isTransitioning = false;
+        isTransitioning = false
 		await sleep(1000)
         return _pickNextVideo()
     }
@@ -283,16 +283,16 @@ async function _pickNextVideo() {
 async function playNextVideo() {
     // Prevent concurrent executions
     if (isTransitioning || resetRequested) {
-        isTransitioning = false;
-        return;
+        isTransitioning = false
+        return
     }
-    isTransitioning = true;
+    isTransitioning = true
 
     // reset flags
     clearInterval(countInter)
     if(cuingTimeout) clearTimeout(cuingTimeout)
     if(fallbackTimeout) clearTimeout(fallbackTimeout) // Clear previous fallback
-    fallbackTimeout = null;
+    fallbackTimeout = null
 
     onVideoCued = null
     timerStarted = false
@@ -311,29 +311,30 @@ async function playNextVideo() {
     document.getElementById('vid_count').innerText = videoList.length - (ivideo+1)
 
     console.log('Playing video', ivideo, picked)
-    if(videoList[ivideo]['name']) banner.innerHTML = '(' + videoList[ivideo]['name'] + ')'
-    else banner.innerHTML = (ivideo+1)
-    counterElement.innerHTML = '<br>' + GUESSING_TIME
 
     // Clear any existing timeout first
-    if(cuingTimeout) clearTimeout(cuingTimeout);
+    if(cuingTimeout) clearTimeout(cuingTimeout)
 
     cuingTimeout = setTimeout(()=>{
         // Only trigger if we haven't successfully moved on
-        if(!resetRequested && isTransitioning) {
+        if(cuingTimeout && !resetRequested && isTransitioning) {
             toast('Video ' + picked['id'] + " hasn't started after 5s, autoskip")
             // Call self directly, but ensure we don't double lock if playNextVideo is already running
             // However, since this is a timeout callback, the main flow might have finished.
             // We set isTransitioning = false inside the recursive call naturally.
-            playNextVideo();
+            playNextVideo()
         }
     }, 5000)
 
     // Clear fallback immediately on success cue
     onVideoCued = ()=> {
-        clearTimeout(cuingTimeout);
-        cuingTimeout = null;
-    };
+        clearTimeout(cuingTimeout)
+        cuingTimeout = null
+
+		// Show clue
+		if(videoList[ivideo]['name']) banner.innerHTML = '(' + videoList[ivideo]['name'] + ')'
+    	else banner.innerHTML = (ivideo+1)
+    }
 
     videoPlayer.loadVideoById({'videoId': picked['id'],
         'startSeconds': picked['_start'],
@@ -341,7 +342,7 @@ async function playNextVideo() {
     })
 
     banner.innerText = (ivideo+1) + '/' + videoList.length
-    isTransitioning = false;
+    isTransitioning = false
 }
 
 function clickStart() {
