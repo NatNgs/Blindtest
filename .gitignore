@@ -1,4 +1,5 @@
 lists/**/*.*
+!lists/**/README.md
 !lists/**/*.ids.*
 
 py/

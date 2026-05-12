@@ -12,14 +12,12 @@ async function waitUntilTrue(condition, maxwait=3000) {
 	return condition()
 }
 
-
-
 // Constants
 const GUESSING_TIME = 20 // seconds
 const AFTER_GUESSING_TIME = 10 // seconds
 
 // Local variables
-let videoList = [] // [{id: .., start: .., end: .., name: ..}, ...]
+const videoList = [] // [{id: ..., _start: ..., _end: ...}, ...]
 let ivideo = -1
 let curtain = null
 let counterElement = null
@@ -30,7 +28,6 @@ let videoPlayer
 
 // Concurrency and State Control
 let isTransitioning = false; // Prevents concurrent playNextVideo calls
-let resetRequested = false;  // Flags if resetList was called during async operations
 let fallbackTimeout = null;  // Explicit reference to the fallback timer
 
 // Prepare Youtube Player
@@ -53,18 +50,6 @@ function onYouTubeIframeAPIReady() {
 	counterElement = document.getElementById('counter')
 }
 
-function parseTime(timeAsText) {
-	try {
-		const spt = timeAsText.split(':')
-		if(spt.length === 1) return Number.parseFloat(timeAsText)
-		if(spt.length === 2) return Number.parseInt(spt[0])*60 + Number.parseFloat(spt[1])
-		if(spt.length === 3) return (Number.parseInt(spt[0])*60 + Number.parseInt(spt[1]))*60 + Number.parseFloat(spt[2])
-	} catch(e) {
-		console.warn('Could not parse time: \'' + timeAsText + '\'', e)
-	}
-	return undefined
-}
-
 function resetList() {
 	// Signal any running async operation to stop immediately
 	isTransitioning = false
@@ -78,17 +63,6 @@ function resetList() {
 	ivideo = -1
 	document.getElementById('played_count').innerText = 0
 	document.getElementById('vid_count').innerText = videoList.length
-}
-async function clearList() {
-	resetRequested = true
-	counterElement.innerText = 'Reseting...'
-
-	videoList.length = 0
-	resetList()
-	await sleep(1000)
-
-	counterElement.innerText = 'Cleared'
-	resetRequested = false // Reset flag for next use
 }
 
 function addVideos(vidsToAdd) {
@@ -160,10 +134,13 @@ function _formatAnswer(vdata) {
 			channel = channel.substring(0, channel.length - 8).trim()
 	}
 
-	if(title.match(/[(\]][^)]*?(Officiel|Official)[^)]*?[)\]]/i))
-		title = title.replace(/[(\]][^)]*?(Officiel|Official)[^)]*?[)\]]/i, '').trim()
-	if(title.match(/[(\]](HD|4K)[)\]]/i))
-		title = title.replace(/[(\]](HD|4K)[)\]]/i, '').trim()
+	const regs = [
+		// "(Vidéo Officielle)", "(Official Remastered Video)", "[Official 1080p HD version]", ...
+		/[(\[][^)\]]*?(Officiel|Official|1080)[^)\]]*[)\]]/i,
+		/[(\[](HD|4K)[)\]]/i
+	]
+	for(let reg in regs) if(title.match(reg))
+		title = title.replace(reg, '').trim()
 
 	return channel + '<br/>-<br/>' + title
 }
@@ -187,7 +164,7 @@ function _updateCounter() {
 		//videoList[ivideo]['_start'] = currentTime // bruteforce fix the problem
 	} else if(currentTime >= skipTime) {
 		// Prevent double trigger if transition already started
-		if(!isTransitioning && !resetRequested) {
+		if(!isTransitioning) {
 			// Clear interval immediately to prevent re-entry
 			if(countInter) clearInterval(countInter)
 			setTimeout(playNextVideo, 100)
@@ -245,17 +222,10 @@ async function _pickNextVideo() {
 
 	// Wait until video has been loaded
 	const hasBeenLoaded = await waitUntilTrue(() =>
-		resetRequested // Abort wait if reset
-		|| (videoPlayer?.playerInfo?.videoData?.video_id === picked['id']
-			&& (cued // Video has been cued successfully
-				|| videoPlayer.errCode // Abort if an error occurred
-			)), 2000)
-
-	// Abort if reset was triggered during wait
-	if (resetRequested) {
-		isTransitioning = false
-		return null
-	}
+		videoPlayer?.playerInfo?.videoData?.video_id === picked['id']
+		&& (cued // Video has been cued successfully
+			|| videoPlayer.errCode // Abort if an error occurred
+		), 2000)
 
 	if(!hasBeenLoaded || videoPlayer.errCode) {
 		if(!videoPlayer.errCode) videoPlayer.errCode = -1, videoPlayer.errMessage = 'Loading timeout'
@@ -297,7 +267,7 @@ async function _pickNextVideo() {
 // Prepare the next video to play
 async function playNextVideo() {
 	// Prevent concurrent executions
-	if (isTransitioning || resetRequested) {
+	if (isTransitioning) {
 		isTransitioning = false
 		return
 	}
@@ -345,7 +315,7 @@ async function playNextVideo() {
 
 	cuingTimeout = setTimeout(()=>{
 		// Only trigger if we haven't successfully moved on
-		if(!cued && !resetRequested) {
+		if(!cued) {
 			toast('Video ' + picked['id'] + " hasn't started after 5s, autoskip")
 			setTimeout(playNextVideo)
 		}
