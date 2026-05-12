@@ -83,13 +83,13 @@ function resetList() {
 }
 async function clearList() {
 	resetRequested = true
-    counterElement.innerHTML = '<div>Reseting...</div>'
+    counterElement.innerText = 'Reseting...'
 
     videoList.length = 0
 	resetList()
 	await sleep(1000)
 
-	counterElement.innerHTML = '<div>Cleared</div>'
+	counterElement.innerText = 'Cleared'
     resetRequested = false // Reset flag for next use
 }
 
@@ -181,7 +181,7 @@ function _updateCounter() {
         curtain.style['backdrop-filter'] = ''
     } else {
 		const counter = revealTime - currentTime
-		counterElement.innerHTML = '<br>' + ((counter+0.99)|0)
+		counterElement.innerText = ((counter+0.99)|0)
 
 		if (counter <= 1) {
 			curtain.style['backdrop-filter'] = 'blur(0) grayscale(0)'
@@ -302,7 +302,7 @@ async function playNextVideo() {
 	const picked = await _pickNextVideo()
 	if(!picked) return resetList()
 
-    document.getElementById('played_count').innerText = ivideo
+    document.getElementById('played_count').innerText = ivideo+1
     document.getElementById('vid_count').innerText = videoList.length - (ivideo+1)
 
     console.log('Playing video', ivideo, picked)

@@ -73,13 +73,16 @@ body {
 	position: absolute;
 	z-index: 2;
 	display: block;
-	translate: -50% -100%;
 	color: white;
-	font-size: 100px;
 	text-shadow: 0 0 0.1em black;
 	text-align: center;
 	top: 50%;
 	left: 50%;
+	width: 95%;
+	translate: -50% -100%;
+	font-size: 100px;
+	line-height: 1;
+	pointer-events: none;
 }
 
 /* FOOTER */
