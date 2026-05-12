@@ -115,11 +115,6 @@ function onYouTubeEventStateChange(evt) {
     } else if (evt.data == YT.PlayerState.PLAYING && !timerStarted) {
         if(countInter) clearInterval(countInter)
         countInter = setInterval(_updateCounter, 125)
-    } else if (evt.data == YT.PlayerState.ENDED) {
-        if (!isTransitioning && !resetRequested) {
-            playing = false
-            clickNext()
-        }
     }
 }
 function onYoutubeErrorEvent(evt) {
@@ -252,7 +247,7 @@ async function _pickNextVideo() {
 
 		// Retry
 		await sleep(1000)
-        return _pickNextVideo()
+        return await _pickNextVideo()
     }
 
     const vdata = videoPlayer.getVideoData()
@@ -262,7 +257,7 @@ async function _pickNextVideo() {
 
         // Retry
 		await sleep(1000)
-        return _pickNextVideo()
+        return await _pickNextVideo()
     }
 
 	// Gather video timing information
@@ -319,7 +314,7 @@ async function playNextVideo() {
         // Only trigger if we haven't successfully moved on
         if(cuingTimeout && !resetRequested && isTransitioning) {
             toast('Video ' + picked['id'] + " hasn't started after 5s, autoskip")
-            playNextVideo()
+            setTimeout(playNextVideo)
         }
     }, 5000)
 
@@ -329,8 +324,8 @@ async function playNextVideo() {
         cuingTimeout = null
 
 		// Show clue
-		if(videoList[ivideo]['name']) banner.innerHTML = '(' + videoList[ivideo]['name'] + ')'
-    	else banner.innerHTML = (ivideo+1)
+		if(picked['name']) banner.innerHTML = '(' + picked['name'] + ')'
+    	else banner.innerText = (ivideo+1)
     }
 
 	videoPlayer.unmute()
@@ -359,7 +354,7 @@ function clickNext() {
         videoPlayer.stopVideo()
     }
     playing = false
-    setTimeout(playNextVideo, 100)
+    setTimeout(playNextVideo)
 }
 
 function clickPlayPause() {
