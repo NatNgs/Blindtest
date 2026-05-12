@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="12 12 104 104" stroke="#DB3" fill="#DB3">
+	<ellipse cx="66" cy="62" rx="55" ry="45" transform="rotate(-38 64 64)"
+		fill="#3458" stroke="none"/>
+
+	<g stroke-linecap="round" stroke-linejoin="round">
+		<!-- 1. The Eye Outline (Pointy Almond Shape) -->
+		<!-- Sharp points at left (20,64) and right (108,64) -->
+		<path d="M20 64 C35 45, 55 40, 64 40 C73 40, 93 45, 108 64 C93 83, 73 88, 64 88 C55 88, 35 83, 20 64 Z"
+				fill="white" stroke-width="5" stroke-linecap="round"/>
+
+		<!-- 2. The Music Note (Centered Head + Right-Aligned Stem/Flag) -->
+
+		<!-- The Note Head (Pupil) - Centered at 64,64 -->
+		<ellipse cx="58" cy="63" rx="11" ry="13" transform="rotate(-15 64 64)"/>
+		<!-- Note stem -->
+		<g fill="none">
+			<path d="M66,68 L70,25" stroke-width="6"/>
+			<path d="M63,25 Q89,25,110,35" stroke-width="10"/>
+		</g>
+
+		<!-- 3. Eyelashes (Further Outside the Almond Eye) -->
+		<!-- Top Lashes - Moved further up/out -->
+		<g stroke-width="3">
+			<line x1="25" y1="50" x2="18" y2="44"/>
+			<line x1="35" y1="43" x2="30" y2="36"/>
+			<line x1="45" y1="38" x2="41" y2="31"/>
+			<line x1="55" y1="35" x2="53" y2="27"/>
+		</g>
+	</g>
+</svg>

@@ -15,7 +15,7 @@ async function waitUntilTrue(condition, maxwait=3000) {
 
 
 // Constants
-const GUESSING_TIME = 30 // seconds
+const GUESSING_TIME = 20 // seconds
 const AFTER_GUESSING_TIME = 10 // seconds
 
 // Local variables
@@ -68,36 +68,36 @@ function parseTime(timeAsText) {
 	return undefined
 }
 
+function clearStatus() {
+	// Signal any running async operation to stop immediately
+    isTransitioning = false
 
-async function resetList() {
-    // Signal any running async operation to stop immediately
-    resetRequested = true;
-    isTransitioning = false;
-
+	if(countInter) clearInterval(countInter)
+	if(cuingTimeout) clearTimeout(cuingTimeout)
+	if(fallbackTimeout) clearTimeout(fallbackTimeout) // Clear fallback too
     if(playing && videoPlayer) {
         videoPlayer.stopVideo()
         playing = false
     }
-    if(countInter) clearInterval(countInter)
-    if(cuingTimeout) clearTimeout(cuingTimeout)
-    if(fallbackTimeout) clearTimeout(fallbackTimeout) // Clear fallback too
-
-    counterElement.innerHTML = '<div>Reseting...</div>'
 
     ivideo = -1
     loadingVideos.length = 0
     videoList.length = 0
     isLoadingVideos = false
+}
+async function resetList() {
+	resetRequested = true
+    counterElement.innerHTML = '<div>Reseting...</div>'
+
+	clearStatus()
 
     await sleep(1000)
 
     // Double check reset wasn't called again or state changed unexpectedly
-    if(!resetRequested) {
-        document.getElementById('vid_count').innerText = 0
-        counterElement.innerHTML = '<div>Cleared</div>'
-    }
+	document.getElementById('vid_count').innerText = 0
+	counterElement.innerHTML = '<div>Cleared</div>'
 
-    resetRequested = false; // Reset flag for next use
+    resetRequested = false // Reset flag for next use
 }
 
 function addVideos(vidsToAdd) {
@@ -181,20 +181,16 @@ function _updateCounter() {
         return;
     }
 
-    revealTime = videoList[ivideo]['_start'] + GUESSING_TIME
+	seekTime = videoList[ivideo]['_start']
+    revealTime = seekTime + GUESSING_TIME
+    skipTime = revealTime + AFTER_GUESSING_TIME
     currentTime = videoPlayer.getCurrentTime()
 
-    if(revealTime <= currentTime) {
-        let vdata = videoPlayer.getVideoData()
-        let soluce = vdata['title']
-        curtain.style.display = 'none'
-        banner.innerHTML = soluce
-        curtain.style['backdrop-filter'] = ''
-        return
-    }
-
-    skipTime = revealTime + AFTER_GUESSING_TIME
-    if(currentTime >= skipTime) {
+	// Fix possible desync (failed to skip beginning of the video)
+	if(currentTime < seekTime) {
+		videoPlayer.seekTo(seekTime) // Will try to seek to requested start before next _updateCounter loop
+		//videoList[ivideo]['_start'] = currentTime // bruteforce fix the problem
+	} else if(currentTime >= skipTime) {
         // Prevent double trigger if transition already started
         if(!isTransitioning && !resetRequested) {
             // Clear interval immediately to prevent re-entry
@@ -202,15 +198,20 @@ function _updateCounter() {
             setTimeout(playNextVideo, 100)
         }
         return
+    } else if(currentTime >= revealTime) {
+        curtain.style.display = 'none'
+        banner.innerHTML = videoPlayer.getVideoData()['title']
+        curtain.style['backdrop-filter'] = ''
+        return
     }
 
-    let counter = revealTime - currentTime
+    const counter = revealTime - currentTime
     counterElement.innerHTML = '<br>' + ((counter+0.99)|0)
 
-    if (counter < 3) {
+    if (counter <= 1) {
         curtain.style['backdrop-filter'] = 'blur(0) grayscale(0)'
-    } else if (counter < 8) {
-        curtain.style['backdrop-filter'] = 'blur(' + ((counter-3) * 10) + 'px) grayscale(' + ((counter-3)*20) + '%)'
+    } else if (counter <= 6) {
+        curtain.style['backdrop-filter'] = 'blur(' + ((counter-1) * 10) + 'px) grayscale(' + ((counter-1)*20) + '%)'
     } else {
         curtain.style['backdrop-filter'] = ''
     }
@@ -230,11 +231,8 @@ async function _pickNextVideo() {
     // if no more video, stop player and return
     if (ivideo >= videoList.length) {
         curtain.style.display = 'block'
-        if(videoList.length > 0) counterElement.innerHTML = '<div>End of the blind test !</div>'
+        if(videoList.length > 0) counterElement.innerHTML = '<div>End !</div>'
         else counterElement.innerHTML = '<div>No video are loaded yet</div>'
-        clearInterval(countInter)
-        ivideo = -1
-        isTransitioning = false;
         return null
     }
 
@@ -270,7 +268,7 @@ async function _pickNextVideo() {
 
     if(!hasBeenLoaded || videoPlayer.errCode) {
         if(!videoPlayer.errCode) videoPlayer.errCode = -1, videoPlayer.errMessage = 'Loading timeout'
-        toast('Youtube sent an error while loading video ' + picked['id'] + ': ' + videoPlayer.errMessage, 'toast-err')
+        toast('Error while loading video ' + picked['id'] + ': ' + videoPlayer.errMessage, 'toast-err')
         isTransitioning = false;
         // Retry logic: wait then call self (which will re-check locks)
 		await sleep(1000)
@@ -317,8 +315,12 @@ async function playNextVideo() {
     onVideoCued = null
     timerStarted = false
 
+    banner.innerText = '(loading '+ (ivideo+2) + '/' + videoList.length +'...)'
+    curtain.style.display = 'block'
+    counterElement.innerText = ''
+
 	const picked = await _pickNextVideo()
-	if(!picked) return
+	if(!picked) return clearStatus()
 
     console.log('Playing video', ivideo, picked)
     if(videoList[ivideo]['name']) banner.innerHTML = '(' + videoList[ivideo]['name'] + ')'
@@ -350,10 +352,7 @@ async function playNextVideo() {
         'endSeconds': picked['_end'],
     })
 
-    curtain.style.display = 'block'
-    banner.innerText = '(loading song '+ (ivideo+1) + '/' + videoList.length +'...)'
-    counterElement.innerText = ''
-
+    banner.innerText = (ivideo+1) + '/' + videoList.length
     isTransitioning = false;
 }
 function clickNext() {
