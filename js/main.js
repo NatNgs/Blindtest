@@ -138,7 +138,7 @@ function onYoutubeErrorEvent(evt) {
 			break
 		case 101:
 		case 150:
-			thisPlayer.errMessage = 'Video not allowed outside Youtube'
+			thisPlayer.errMessage = 'Video not found or not allowed outside Youtube'
 			break
 		case 153:
 			thisPlayer.errMessage = 'Player settings error'
@@ -242,6 +242,9 @@ async function _pickNextVideo() {
         if(!videoPlayer.errCode) videoPlayer.errCode = -1, videoPlayer.errMessage = 'Loading timeout'
         toast('Error while loading video ' + picked['id'] + ': ' + videoPlayer.errMessage, 'toast-err')
         isTransitioning = false
+
+		// Remove video from the list !
+		videoList[ivideo] = videoList.pop()
 
 		// Retry
 		await sleep(1000)
