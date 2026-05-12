@@ -174,25 +174,23 @@ function _updateCounter() {
             if(countInter) clearInterval(countInter)
             setTimeout(playNextVideo, 100)
         }
-        return
     } else if(currentTime >= revealTime) {
         curtain.style.display = 'none'
         counterElement.innerHTML = (videoPlayer.getVideoData()['author'] || '')
 			+ '<br/>' + (videoPlayer.getVideoData()['title'] || '')
         curtain.style['backdrop-filter'] = ''
-        return
-    }
-
-    const counter = revealTime - currentTime
-    counterElement.innerHTML = '<br>' + ((counter+0.99)|0)
-
-    if (counter <= 1) {
-        curtain.style['backdrop-filter'] = 'blur(0) grayscale(0)'
-    } else if (counter <= 6) {
-        curtain.style['backdrop-filter'] = 'blur(' + ((counter-1) * 10) + 'px) grayscale(' + ((counter-1)*20) + '%)'
     } else {
-        curtain.style['backdrop-filter'] = ''
-    }
+		const counter = revealTime - currentTime
+		counterElement.innerHTML = '<br>' + ((counter+0.99)|0)
+
+		if (counter <= 1) {
+			curtain.style['backdrop-filter'] = 'blur(0) grayscale(0)'
+		} else if (counter <= 6) {
+			curtain.style['backdrop-filter'] = 'blur(' + ((counter-1) * 10) + 'px) grayscale(' + ((counter-1)*20) + '%)'
+		} else {
+			curtain.style['backdrop-filter'] = ''
+		}
+	}
 }
 
 async function _pickNextVideo() {
@@ -207,9 +205,11 @@ async function _pickNextVideo() {
     if (ivideo >= videoList.length) {
         curtain.style.display = 'block'
         if(videoList.length > 0) counterElement.innerHTML = '<div>End !</div>'
-        else counterElement.innerHTML = '<div>No video are loaded yet</div>'
+        else counterElement.innerHTML = '<div>No video loaded</div>'
         return null
     }
+
+	banner.innerText = '(loading '+ (ivideo+1) + '/' + videoList.length +'...)'
 
     // Pick a random video
     const rnd = ((Math.random() * (videoList.length - ivideo))|0) + ivideo
@@ -234,7 +234,7 @@ async function _pickNextVideo() {
 		|| (videoPlayer?.playerInfo?.videoData?.video_id === picked['id']
 			&& (cued // Video has been cued successfully
 				|| videoPlayer.errCode // Abort if an error occurred
-			)), 5000)
+			)), 2000)
 
     // Abort if reset was triggered during wait
     if (resetRequested) {
@@ -293,7 +293,6 @@ async function playNextVideo() {
 
     videoPlayer._onCued = null
 
-    banner.innerText = '(loading '+ (ivideo+2) + '/' + videoList.length +'...)'
     curtain.style.display = 'block'
     counterElement.innerText = ''
 
