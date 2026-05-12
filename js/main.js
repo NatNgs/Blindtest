@@ -295,6 +295,7 @@ async function _pickNextVideo() {
         _end = _start + GUESSING_TIME + AFTER_GUESSING_TIME
     }
     picked['_start'] = _start
+	picked['_end'] = _end
 	return picked
 }
 
@@ -319,7 +320,7 @@ async function playNextVideo() {
 	const picked = await _pickNextVideo()
 	if(!picked) return
 
-    console.log('Playing video', ivideo, picked, {_start, _end})
+    console.log('Playing video', ivideo, picked)
     if(videoList[ivideo]['name']) banner.innerHTML = '(' + videoList[ivideo]['name'] + ')'
     else banner.innerHTML = (ivideo+1)
     counterElement.innerHTML = '<br>' + GUESSING_TIME
@@ -345,8 +346,8 @@ async function playNextVideo() {
     };
 
     videoPlayer.loadVideoById({'videoId': picked['id'],
-        'startSeconds': _start,
-        'endSeconds': _end,
+        'startSeconds': picked['_start'],
+        'endSeconds': picked['_end'],
     })
 
     curtain.style.display = 'block'
