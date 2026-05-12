@@ -74,26 +74,22 @@ function resetList() {
 	if(countInter) clearInterval(countInter)
 	if(cuingTimeout) clearTimeout(cuingTimeout)
 	if(fallbackTimeout) clearTimeout(fallbackTimeout) // Clear fallback too
-    if(playing && videoPlayer) {
-        videoPlayer.stopVideo()
-        playing = false
-    }
+    videoPlayer.stopVideo()
+    playing = false
 
     ivideo = -1
+	document.getElementById('played_count').innerText = 0
+	document.getElementById('vid_count').innerText = videoList.length
 }
 async function clearList() {
 	resetRequested = true
     counterElement.innerHTML = '<div>Reseting...</div>'
 
-	resetList()
     videoList.length = 0
+	resetList()
+	await sleep(1000)
 
-    await sleep(1000)
-
-    // Double check reset wasn't called again or state changed unexpectedly
-	document.getElementById('vid_count').innerText = 0
 	counterElement.innerHTML = '<div>Cleared</div>'
-
     resetRequested = false // Reset flag for next use
 }
 
@@ -116,7 +112,6 @@ function onYouTubeEventStateChange(evt) {
     if (onVideoCued && evt.data == YT.PlayerState.CUED) {
         onVideoCued(evt)
         onVideoCued = null
-        return
     } else if (evt.data == YT.PlayerState.PLAYING && !timerStarted) {
         if(countInter) clearInterval(countInter)
         countInter = setInterval(_updateCounter, 125)
@@ -185,7 +180,8 @@ function _updateCounter() {
         return
     } else if(currentTime >= revealTime) {
         curtain.style.display = 'none'
-        banner.innerHTML = videoPlayer.getVideoData()['title']
+        banner.innerHTML = (videoPlayer.getVideoData()['title'] || '')
+			+ '<br/>' + (videoPlayer.getVideoData()['title'] || '')
         curtain.style['backdrop-filter'] = ''
         return
     }
@@ -228,6 +224,7 @@ async function _pickNextVideo() {
     cued = false
     onVideoCued = ()=>{cued = true}
 	videoPlayer.errorCode = 0
+	videoPlayer.mute()
     videoPlayer.cueVideoById({
         'videoId': picked['id'],
         'startSeconds': 0,
@@ -252,7 +249,8 @@ async function _pickNextVideo() {
         if(!videoPlayer.errCode) videoPlayer.errCode = -1, videoPlayer.errMessage = 'Loading timeout'
         toast('Error while loading video ' + picked['id'] + ': ' + videoPlayer.errMessage, 'toast-err')
         isTransitioning = false
-        // Retry logic: wait then call self (which will re-check locks)
+
+		// Retry
 		await sleep(1000)
         return _pickNextVideo()
     }
@@ -261,13 +259,15 @@ async function _pickNextVideo() {
     if(!vdata || !vdata.isPlayable || vdata.errorCode) {
         toast('Video ' + picked['id'] + ' failed to be played ' + (vdata.errCode || ''), 'toast-err')
         isTransitioning = false
+
+        // Retry
 		await sleep(1000)
         return _pickNextVideo()
     }
 
 	// Gather video timing information
     let _start = videoPlayer.getCurrentTime() || 0
-    let _end = videoPlayer.getDuration()
+    let _end = videoPlayer.getDuration() - 5 // Ignore last 5s, outro is not fun
 
 	// Prepare random location to listen
     if(_end - _start > GUESSING_TIME + AFTER_GUESSING_TIME) {
@@ -319,9 +319,6 @@ async function playNextVideo() {
         // Only trigger if we haven't successfully moved on
         if(cuingTimeout && !resetRequested && isTransitioning) {
             toast('Video ' + picked['id'] + " hasn't started after 5s, autoskip")
-            // Call self directly, but ensure we don't double lock if playNextVideo is already running
-            // However, since this is a timeout callback, the main flow might have finished.
-            // We set isTransitioning = false inside the recursive call naturally.
             playNextVideo()
         }
     }, 5000)
@@ -336,12 +333,12 @@ async function playNextVideo() {
     	else banner.innerHTML = (ivideo+1)
     }
 
+	videoPlayer.unmute()
     videoPlayer.loadVideoById({'videoId': picked['id'],
         'startSeconds': picked['_start'],
         'endSeconds': picked['_end'],
     })
 
-    banner.innerText = (ivideo+1) + '/' + videoList.length
     isTransitioning = false
 }
 
