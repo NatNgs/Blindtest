@@ -103,15 +103,15 @@ function addVideos(vidsToAdd) {
 }
 
 // When video player sends an event (video started, stopped, loaded, ...)
-let timerStarted = false
 function onYouTubeEventStateChange(evt) {
     evt.target.errMessage = undefined
     evt.target.errCode = undefined
 
-    if (videoPlayer._onCued && evt.data == YT.PlayerState.CUED) {
+    if (videoPlayer._onCued && (evt.data == YT.PlayerState.CUED || evt.data == YT.PlayerState.PLAYING)) {
         videoPlayer._onCued(evt)
         videoPlayer._onCued = null
-    } else if (evt.data == YT.PlayerState.PLAYING && !timerStarted) {
+    }
+	if (evt.data == YT.PlayerState.PLAYING) {
         if(countInter) clearInterval(countInter)
         countInter = setInterval(_updateCounter, 125)
     }
@@ -141,6 +141,9 @@ function onYoutubeErrorEvent(evt) {
 		case 101:
 		case 150:
 			thisPlayer.errMessage = 'Video not allowed outside Youtube'
+			break
+		case 153:
+			thisPlayer.errMessage = 'Player settings error'
 			break
 		default:
 			thisPlayer.errMessage = 'Unknown error (code:' + errCode + ')'
@@ -289,7 +292,6 @@ async function playNextVideo() {
     fallbackTimeout = null
 
     videoPlayer._onCued = null
-    timerStarted = false
 
     banner.innerText = '(loading '+ (ivideo+2) + '/' + videoList.length +'...)'
     curtain.style.display = 'block'
@@ -310,13 +312,17 @@ async function playNextVideo() {
     if(cuingTimeout) clearTimeout(cuingTimeout)
 
     // Clear fallback immediately on success cue
-    videoPlayer._onCued = ()=> {
+	let cued = false
+	videoPlayer._onCued = ()=> {
+		cued = true
         clearTimeout(cuingTimeout)
         cuingTimeout = null
 
 		// Show clue
 		if(picked['name']) banner.innerText = '(' + picked['name'] + ')'
     	else banner.innerText = (ivideo+1)
+
+		videoPlayer._onCued = null
     }
 
 	videoPlayer.unMute()
@@ -327,7 +333,7 @@ async function playNextVideo() {
 
     cuingTimeout = setTimeout(()=>{
         // Only trigger if we haven't successfully moved on
-        if(cuingTimeout && !resetRequested) {
+        if(!cued && !resetRequested) {
             toast('Video ' + picked['id'] + " hasn't started after 5s, autoskip")
             setTimeout(playNextVideo)
         }
