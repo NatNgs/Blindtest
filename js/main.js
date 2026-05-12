@@ -139,6 +139,35 @@ function onYoutubeErrorEvent(evt) {
 	}
 }
 
+function _formatAnswer(vdata) {
+	let channel = (vdata['author'] || '').trim()
+	let title = (vdata['title'] || '').trim()
+
+	// Try to do some shenanigans on channel and video title to format them as good as possible
+	if(title.match(/^[^-]+ - [^-]+$/)) {
+		// Video title contains the author
+		const spt = title.split(' - ')
+		channel = spt[0].trim()
+		title = spt[1].trim()
+		// (in the worst case, channel and title are reversed, not a bit deal)
+	} else {
+		// Not simply "Author - Title"
+		if(channel.endsWith('VEVO'))
+			channel = channel.substring(0, channel.length - 4).trim()
+		else if(channel.endsWith(' - Topic'))
+			channel = channel.substring(0, channel.length - 9).trim()
+		if(channel.endsWith('Official'))
+			channel = channel.substring(0, channel.length - 8).trim()
+	}
+
+	if(title.match(/[(\]][^)]*?(Officiel|Official)[^)]*?[)\]]/i))
+		title = title.replace(/[(\]][^)]*?(Officiel|Official)[^)]*?[)\]]/i, '').trim()
+	if(title.match(/[(\]](HD|4K)[)\]]/i))
+		title = title.replace(/[(\]](HD|4K)[)\]]/i, '').trim()
+
+	return channel + '<br/>-<br/>' + title
+}
+
 // Display the counter to 0
 function _updateCounter() {
 	// Safety check for valid state
@@ -165,8 +194,7 @@ function _updateCounter() {
 		}
 	} else if(currentTime >= revealTime) {
 		curtain.style.display = 'none'
-		counterElement.innerHTML = (videoPlayer.getVideoData()['author'] || '')
-			+ '<br/>' + (videoPlayer.getVideoData()['title'] || '')
+		counterElement.innerHTML = _formatAnswer(videoPlayer.getVideoData())
 		curtain.style['backdrop-filter'] = ''
 	} else {
 		const counter = revealTime - currentTime
