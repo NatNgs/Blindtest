@@ -50,11 +50,18 @@ body {
 
 #loadStats {
 	position: fixed;
-	bottom: 1em;
-	left: 1em;
+	top: 1em;
+	right: 1em;
 	height: 1.25em;
 	color: white;
 	z-index: 101;
+}
+#loadStats > div {
+	display: inline-block;
+}
+#loadStats > div > button {
+	width: 100%;
+	margin: 1px;
 }
 
 #curtain {

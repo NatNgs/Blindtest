@@ -34,13 +34,15 @@
 		</div>
 
 		<div id="loadStats">
-			<button onclick="loadFromList()">Add from file</button>
-			<button onclick="loadFromPopup()">Add from url</button>
+			<div>
+				<button onclick="loadFromList()">Load more from file</button><br/>
+				<button onclick="loadFromPopup()">Add by url</button>
+			</div>
 			&nbsp;
-			<button onclick="saveToFile()">Save all</button>
-			<button onclick="saveToFile(true)">Save remaining</button>
-			&nbsp;
-			<button onclick="clearList()">Reset</button>
+			<div>
+				<button onclick="saveToFile()">Export full list</button><br/>
+				<button onclick="saveToFile(true)">Export remaining</button>
+			</div>
 		</div>
 	</body>
 </html>
