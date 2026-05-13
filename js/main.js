@@ -118,12 +118,11 @@ function _formatAnswer(vdata) {
 	let title = (vdata['title'] || '').trim()
 
 	// Try to do some shenanigans on channel and video title to format them as good as possible
-	if(title.match(/^[^-]+ - [^-]+$/)) {
+	if(title.match(/^[^-]+ - /)) {
 		// Video title contains the author
 		const spt = title.split(' - ')
-		channel = spt[0].trim()
-		title = spt[1].trim()
-		// (in the worst case, channel and title are reversed, not a bit deal)
+		channel = spt.shift().trim()
+		title = spt.join(' - ').trim()
 	} else if(channel.endsWith('VEVO'))
 		channel = channel.substring(0, channel.length - 4).trim()
 	else if(channel.endsWith(' - Topic'))
@@ -135,10 +134,10 @@ function _formatAnswer(vdata) {
 
 	const regs = [
 		// "(Vidéo Officielle)", "(Official Remastered Video)", "[Official 1080p HD version]", ...
-		/[(\[][^)\]]*(Officiel|Official|1080|4K)[^)\]]*[)\]]/i,
+		/[(\[][^)\]]*(Officiel|Off?icial|1080|4K)[^)\]]*[)\]]/i,
 		/[(\[]HD[)\]]/i
 	]
-	for(let reg in regs) if(title.match(reg))
+	for(let reg of regs) if(title.match(reg))
 		title = title.replace(reg, '').trim()
 
 	return channel + '<br/>-<br/>' + title
