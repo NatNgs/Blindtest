@@ -109,6 +109,12 @@ button:active {
 	/* When the mouse is pressed down on the button */
 	filter: brightness(150%);
 }
+
+.bottomButtons {
+	height: 4em;
+	display: flex;
+	justify-content: space-evenly;
+}
 #skipBtn {
 	font-size: 2em;
 	width: 67%;

@@ -124,20 +124,19 @@ function _formatAnswer(vdata) {
 		channel = spt[0].trim()
 		title = spt[1].trim()
 		// (in the worst case, channel and title are reversed, not a bit deal)
-	} else {
-		// Not simply "Author - Title"
-		if(channel.endsWith('VEVO'))
-			channel = channel.substring(0, channel.length - 4).trim()
-		else if(channel.endsWith(' - Topic'))
-			channel = channel.substring(0, channel.length - 9).trim()
-		if(channel.endsWith('Official'))
-			channel = channel.substring(0, channel.length - 8).trim()
-	}
+	} else if(channel.endsWith('VEVO'))
+		channel = channel.substring(0, channel.length - 4).trim()
+	else if(channel.endsWith(' - Topic'))
+		channel = channel.substring(0, channel.length - 9).trim()
+	else if(channel.endsWith('Official') || channel.endsWith('Officiel'))
+		channel = channel.substring(0, channel.length - 8).trim()
+	else // Channel looks unrelated
+		channel = '(' + channel + ')'
 
 	const regs = [
 		// "(Vidéo Officielle)", "(Official Remastered Video)", "[Official 1080p HD version]", ...
-		/[(\[][^)\]]*?(Officiel|Official|1080)[^)\]]*[)\]]/i,
-		/[(\[](HD|4K)[)\]]/i
+		/[(\[][^)\]]*(Officiel|Official|1080|4K)[^)\]]*[)\]]/i,
+		/[(\[]HD[)\]]/i
 	]
 	for(let reg in regs) if(title.match(reg))
 		title = title.replace(reg, '').trim()
