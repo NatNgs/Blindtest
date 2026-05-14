@@ -118,26 +118,24 @@ function _formatAnswer(vdata) {
 	let title = (vdata['title'] || '').trim()
 
 	// Try to do some shenanigans on channel and video title to format them as good as possible
-	if(title.match(/^[^-]+ - /)) {
+	if(channel.endsWith(' - Topic')) {
+		channel = channel.substring(0, channel.length - 9).trim()
+		return channel + '<br/>-<br/>' + title
+	} else if(title.match(/^[^-]+ - /)) {
 		// Video title contains the author
 		const spt = title.split(' - ')
 		channel = spt.shift().trim()
 		title = spt.join(' - ').trim()
 	} else if(channel.endsWith('VEVO'))
 		channel = channel.substring(0, channel.length - 4).trim()
-	else if(channel.endsWith(' - Topic'))
-		channel = channel.substring(0, channel.length - 9).trim()
 	else if(channel.endsWith('Official') || channel.endsWith('Officiel'))
 		channel = channel.substring(0, channel.length - 8).trim()
 	else // Channel looks unrelated
 		channel = '(' + channel + ')'
 
-	const regs = [
-		// "(Vidéo Officielle)", "(Official Remastered Video)", "[Official 1080p HD version]", ...
-		/[(\[][^)\]]*(Officiel|Off?icial|1080|4K)[^)\]]*[)\]]/i,
-		/[(\[]HD[)\]]/i
-	]
-	for(let reg of regs) if(title.match(reg))
+	// "(Vidéo Officielle)", "(Official Remastered Video)", "[Official 1080p HD version]", ...
+	const reg = /[(\[][^)\]]*?(Officiel|Off?icial|1080|4K|Remaster|Video|Audio|Live|Stereo|Mono)[^)\]]*[)\]]/ig
+	if(title.match(reg))
 		title = title.replace(reg, '').trim()
 
 	return channel + '<br/>-<br/>' + title
