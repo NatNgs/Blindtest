@@ -4,7 +4,7 @@
 function saveToFile(saveOnlyUnplayed=false) {
 	// Ask to save text file .tsv
 	const list = []
-	for(const i = (saveOnlyUnplayed ? ivideo+1 : 0); i<videoList.length; i++) {
+	for(let i = (saveOnlyUnplayed ? ivideo+1 : 0); i<videoList.length; i++) {
 		list.push(videoList[i].id)
 	}
 
