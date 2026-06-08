@@ -119,7 +119,7 @@ function _formatAnswer(vdata) {
 
 	// Try to do some shenanigans on channel and video title to format them as good as possible
 	if(channel.endsWith(' - Topic')) {
-		channel = channel.substring(0, channel.length - 9).trim()
+		channel = channel.substring(0, channel.length - 8).trim()
 		return channel + '<br/>-<br/>' + title
 	} else if(title.match(/^[^-]+ - /)) {
 		// Video title contains the author
@@ -230,6 +230,9 @@ async function _pickNextVideo() {
 
 		// Remove video from the list !
 		videoList[ivideo] = videoList.pop()
+
+		// Update video count
+		document.getElementById('vid_count').innerText = videoList.length
 
 		// Retry
 		await sleep(1000)
