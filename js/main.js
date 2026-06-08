@@ -235,8 +235,8 @@ async function _pickNextVideo() {
 	}
 
 	// Gather video timing information
-	const _start = videoPlayer.getCurrentTime() || 0
-	const _end = videoPlayer.getDuration() - 7 // Ignore last 7s, outro is not fun
+	let _start = videoPlayer.getCurrentTime() || 0
+	let _end = videoPlayer.getDuration() - 7 // Ignore last 7s, outro is not fun
 
 	// Prepare random location to listen
 	if(_end - _start > GUESSING_TIME + AFTER_GUESSING_TIME) {
