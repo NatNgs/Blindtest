@@ -28,7 +28,16 @@ function saveToFile(saveOnlyUnplayed=false) {
 
 function _addVideos(vidsToAdd) {
 	if(vidsToAdd && vidsToAdd.length) {
-		videoList.push(... vidsToAdd)
+		for(let v of vidsToAdd) {
+			const index = videoList.findIndex(vid => vid['id'] === v['id'])
+			if(index === -1) {
+				// Add new video to the list
+				videoList.push(... vidsToAdd)
+			} else {
+				// Video already in the list : merging properties
+				for(const k in v) videoList[index][k] = v[k]
+			}
+		}
 		document.getElementById('vid_count').innerText = videoList.length
 	}
 }
