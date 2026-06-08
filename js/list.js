@@ -32,7 +32,7 @@ function _addVideos(vidsToAdd) {
 			const index = videoList.findIndex(vid => vid['id'] === v['id'])
 			if(index === -1) {
 				// Add new video to the list
-				videoList.push(... vidsToAdd)
+				videoList.push(v)
 			} else {
 				// Video already in the list : merging properties
 				for(const k in v) videoList[index][k] = v[k]
