@@ -111,7 +111,7 @@ function _extractTitleAndAuthor(entity, vdata) {
 		channel = '(' + channel + ')'
 
 	// "(Vidéo Officielle)", "(Official Remastered Video)", "[Official 1080p HD version]", ...
-	const reg = /[(\[][^)\]]*?(Officiel|Off?icial|1080|4K|Remaster|Video|Audio|Live|Stereo|Mono)[^)\]]*[)\]]/ig
+	const reg = /[(\[][^)\]]*?(Officiel|Off?icial|1080|4K|Remaster|Video|Audio|Live|Stereo|Mono|HD|HQ)[^)\]]*[)\]]/ig
 	if(title.match(reg))
 		title = title.replace(reg, '').trim()
 
@@ -230,7 +230,7 @@ async function _pickNextVideo() {
 	// Ensure title
 	if(!picked['title']) {
 		const [channel, title] = _extractTitleAndAuthor(picked, vdata)
-		if(channel && !picked['channel']) picked['channel'] = channel
+		if(channel && !picked['author']) picked['author'] = channel
 		if(title && !picked['title']) picked['title'] = title
 	}
 
@@ -326,6 +326,7 @@ function clickNext(event) {
 	const toRemove = event?.shiftKey
 	if(toRemove) {
 		videoList[ivideo] = videoList.pop()
+		ivideo --
 		document.getElementById('vid_count').innerText = videoList.length
 	}
 
