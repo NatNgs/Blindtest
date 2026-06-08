@@ -50,29 +50,6 @@ function onYouTubeIframeAPIReady() {
 	counterElement = document.getElementById('counter')
 }
 
-function resetList() {
-	// Signal any running async operation to stop immediately
-	isTransitioning = false
-
-	if(countInter) clearInterval(countInter)
-	if(cuingTimeout) clearTimeout(cuingTimeout)
-	if(fallbackTimeout) clearTimeout(fallbackTimeout) // Clear fallback too
-	videoPlayer.stopVideo()
-	playing = false
-
-	ivideo = -1
-	document.getElementById('played_count').innerText = 0
-	document.getElementById('vid_count').innerText = videoList.length
-}
-
-function addVideos(vidsToAdd) {
-	if(vidsToAdd && vidsToAdd.length) {
-		console.log(vidsToAdd)
-		videoList.push(... vidsToAdd)
-
-		document.getElementById('vid_count').innerText = videoList.length
-	}
-}
 
 // When video player sends an event (video started, stopped, loaded, ...)
 function onYouTubeEventStateChange(evt) {
@@ -113,14 +90,14 @@ function onYoutubeErrorEvent(evt) {
 	}
 }
 
-function _formatAnswer(vdata) {
+function _extractTitleAndAuthor(entity, vdata) {
 	let channel = (vdata['author'] || '').trim()
 	let title = (vdata['title'] || '').trim()
 
 	// Try to do some shenanigans on channel and video title to format them as good as possible
 	if(channel.endsWith(' - Topic')) {
 		channel = channel.substring(0, channel.length - 8).trim()
-		return channel + '<br/>-<br/>' + title
+		return [channel, title]
 	} else if(title.match(/^[^-]+ - /)) {
 		// Video title contains the author
 		const spt = title.split(' - ')
@@ -138,7 +115,7 @@ function _formatAnswer(vdata) {
 	if(title.match(reg))
 		title = title.replace(reg, '').trim()
 
-	return channel + '<br/>-<br/>' + title
+	return [channel, title]
 }
 
 // Display the counter to 0
@@ -149,7 +126,8 @@ function _updateCounter() {
 		return
 	}
 
-	seekTime = videoList[ivideo]['_start']
+	const v = videoList[ivideo]
+	seekTime = v['_start']
 	revealTime = seekTime + GUESSING_TIME
 	skipTime = revealTime + AFTER_GUESSING_TIME
 	currentTime = videoPlayer.getCurrentTime()
@@ -157,7 +135,7 @@ function _updateCounter() {
 	// Fix possible desync (failed to skip beginning of the video)
 	if(currentTime < seekTime) {
 		videoPlayer.seekTo(seekTime) // Will try to seek to requested start before next _updateCounter loop
-		//videoList[ivideo]['_start'] = currentTime // bruteforce fix the problem
+		//v['_start'] = currentTime // bruteforce fix the problem
 	} else if(currentTime >= skipTime) {
 		// Prevent double trigger if transition already started
 		if(!isTransitioning) {
@@ -167,7 +145,7 @@ function _updateCounter() {
 		}
 	} else if(currentTime >= revealTime) {
 		curtain.style.display = 'none'
-		counterElement.innerHTML = _formatAnswer(videoPlayer.getVideoData())
+		counterElement.innerHTML = (v['author'] ? (v['author'] + '<br/>-<br/>') : '') + v['title']
 		curtain.style['backdrop-filter'] = ''
 	} else {
 		const counter = revealTime - currentTime
@@ -191,7 +169,7 @@ async function _pickNextVideo() {
 		ivideo ++
 	}
 
-	// if no more video, stop player and return
+	// if no more video, stop
 	if (ivideo >= videoList.length) {
 		curtain.style.display = 'block'
 		if(videoList.length > 0) counterElement.innerText = 'End !'
@@ -249,9 +227,16 @@ async function _pickNextVideo() {
 		return await _pickNextVideo()
 	}
 
+	// Ensure title
+	if(!picked['title']) {
+		const [channel, title] = _extractTitleAndAuthor(picked, vdata)
+		if(channel && !picked['channel']) picked['channel'] = channel
+		if(title && !picked['title']) picked['title'] = title
+	}
+
 	// Gather video timing information
-	let _start = videoPlayer.getCurrentTime() || 0
-	let _end = videoPlayer.getDuration() - 5 // Ignore last 5s, outro is not fun
+	const start = videoPlayer.getCurrentTime() || 0
+	const end = videoPlayer.getDuration() - 5 // Ignore last 5s, outro is not fun
 
 	// Prepare random location to listen
 	if(_end - _start > GUESSING_TIME + AFTER_GUESSING_TIME) {
@@ -325,16 +310,24 @@ async function playNextVideo() {
 
 function clickStart() {
 	const btn = document.getElementById('skipBtn')
+	btn.disabled = true
 	btn.innerText = 'Next'
 	btn.onclick = clickNext
 	clickNext()
 }
-function clickNext() {
+function clickNext(event) {
 	// Mark skip button as disabled
 	document.getElementById('skipBtn').disabled = true
 
 	// If already transitioning, ignore click
 	if(isTransitioning) return
+
+	// Also remove the video from the list if shift+click
+	const toRemove = event?.shiftKey
+	if(toRemove) {
+		videoList[ivideo] = videoList.pop()
+		document.getElementById('vid_count').innerText = videoList.length
+	}
 
 	if(videoPlayer) {
 		videoPlayer.stopVideo()
