@@ -98,7 +98,7 @@ function _extractTitleAndAuthor(entity, vdata) {
 	if(channel.endsWith(' - Topic')) {
 		channel = channel.substring(0, channel.length - 8).trim()
 		return [channel, title]
-	} else if(title.match(/^[^-]+ - /)) {
+	} else if(title.includes(' - ')) {
 		// Video title contains the author
 		const spt = title.split(' - ')
 		channel = spt.shift().trim()
@@ -107,11 +107,13 @@ function _extractTitleAndAuthor(entity, vdata) {
 		channel = channel.substring(0, channel.length - 4).trim()
 	else if(channel.endsWith('Official') || channel.endsWith('Officiel'))
 		channel = channel.substring(0, channel.length - 8).trim()
-	else // Channel looks unrelated
-		channel = '(' + channel + ')'
+	else if(vdata['author']) // Channel looks unrelated
+		channel = '(' + vdata['author'] + ')'
+	else
+		channel = null
 
 	// "(Vidéo Officielle)", "(Official Remastered Video)", "[Official 1080p HD version]", ...
-	const reg = /[(\[][^)\]]*?(Officiel|Off?icial|1080|4K|Remaster|Video|Audio|Live|Stereo|Mono|HD|HQ)[^)\]]*[)\]]/ig
+	const reg = /[(\[][^)\]]*?(Officiel|Off?icial|1080|4K|Remaster|Video|Audio|Live|Stereo|Mono|HD|HQ|Clip)[^)\]]*[)\]]/ig
 	if(title.match(reg))
 		title = title.replace(reg, '').trim()
 
