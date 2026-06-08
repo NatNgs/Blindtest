@@ -13,8 +13,8 @@ async function waitUntilTrue(condition, maxwait=3000) {
 }
 
 // Constants
-const GUESSING_TIME = 20 // seconds
-const AFTER_GUESSING_TIME = 10 // seconds
+let GUESSING_TIME = 20 // seconds
+let AFTER_GUESSING_TIME = 10 // seconds
 
 // Local variables
 const videoList = [] // [{id: ..., _start: ..., _end: ...}, ...]

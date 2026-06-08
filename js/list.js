@@ -34,17 +34,18 @@ function _addVideos(vidsToAdd) {
 }
 function _parseVid(p) {
 	if(p.length === 11) {
-		return {id: p}
+		// Check that it matches format
+		if(p.match(/[0-9A-Za-z_-]{10}[048AEIMQUYcgkosw]/)) return {id: p}
 	} else if(p.length > 11) {
 		id = null
 
 		// Parse yt video URL to video id
-		let match = p.match(/(?:[^/]+\/)*([a-zA-Z0-9_-]{11})/)
+		let match = p.match(/(?:[^/]+\/)*([0-9A-Za-z_-]{10}[048AEIMQUYcgkosw])/)
 		if(match && match.length > 1)
 			id = match[1]
 		else {
 			// Extract url params, and find parameter "v"
-			match = p.match(/[?&]v=([a-zA-Z0-9_-]{11})/)
+			match = p.match(/[?&]v=([0-9A-Za-z_-]{10}[048AEIMQUYcgkosw])/)
 			if(match && match.length > 1) id = match[1]
 		}
 		if(id != null) return {id: id}
