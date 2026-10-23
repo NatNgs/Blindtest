@@ -15,6 +15,7 @@ async function waitUntilTrue(condition, maxwait=3000) {
 // Constants
 let GUESSING_TIME = 20 // seconds
 let AFTER_GUESSING_TIME = 10 // seconds
+let SKIP_TIMEOUT = 10 // seconds
 
 // Local variables
 const videoList = [] // [{id: ..., _start: ..., _end: ...}, ...]
@@ -305,7 +306,7 @@ async function playNextVideo() {
 			toast('Video ' + picked['id'] + " hasn't started after 5s, autoskip")
 			setTimeout(playNextVideo)
 		}
-	}, 5000)
+	}, SKIP_TIMEOUT * 1000)
 
 	isTransitioning = false
 }
