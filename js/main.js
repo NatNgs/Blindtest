@@ -303,7 +303,7 @@ async function playNextVideo() {
 	cuingTimeout = setTimeout(()=>{
 		// Only trigger if we haven't successfully moved on
 		if(!cued) {
-			toast('Video ' + picked['id'] + " hasn't started after 5s, autoskip")
+			toast(`Video ${picked['id']} hasn't started after ${SKIP_TIMEOUT}s, autoskip`)
 			setTimeout(playNextVideo)
 		}
 	}, SKIP_TIMEOUT * 1000)
